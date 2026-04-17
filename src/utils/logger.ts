@@ -1,0 +1,2 @@
+// Logging via pino
+export {}

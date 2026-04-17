@@ -1,0 +1,2 @@
+// Priority badge component
+export {}

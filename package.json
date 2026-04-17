@@ -1,0 +1,59 @@
+{
+  "name": "stratanodex",
+  "version": "0.1.0",
+  "description": "CLI-first productivity system",
+  "type": "module",
+  "bin": {
+    "stratanodex": "./dist/index.js"
+  },
+  "engines": {
+    "node": ">=20.0.0"
+  },
+  "scripts": {
+    "dev": "tsx src/index.ts",
+    "build": "tsc",
+    "start": "node dist/index.js",
+    "test": "vitest",
+    "test:watch": "vitest --watch",
+    "lint": "eslint src/",
+    "format": "prettier --write src/",
+    "typecheck": "tsc --noEmit",
+    "prepare": "husky install"
+  },
+  "keywords": [
+    "cli",
+    "productivity",
+    "task-manager",
+    "todo"
+  ],
+  "author": "",
+  "license": "MIT",
+  "dependencies": {
+    "@inkjs/ui": "^1.0.0",
+    "axios": "^1.6.0",
+    "chalk": "^5.3.0",
+    "commander": "^11.0.0",
+    "conf": "^12.0.0",
+    "dotenv": "^16.3.0",
+    "ink": "^4.4.1",
+    "ink-select-input": "^5.0.0",
+    "ink-text-input": "^5.0.1",
+    "pino": "^8.16.0",
+    "react": "^18.2.0"
+  },
+  "devDependencies": {
+    "@types/node": "^20.10.0",
+    "@types/react": "^18.2.0",
+    "@typescript-eslint/eslint-plugin": "^8.58.2",
+    "@typescript-eslint/parser": "^8.58.2",
+    "eslint": "^8.55.0",
+    "eslint-plugin-react": "^7.37.5",
+    "husky": "^8.0.0",
+    "ink-testing-library": "^3.0.0",
+    "lint-staged": "^15.2.0",
+    "prettier": "^3.1.0",
+    "tsx": "^4.7.0",
+    "typescript": "^5.3.0",
+    "vitest": "^1.0.0"
+  }
+}

@@ -1,0 +1,2 @@
+// Folders hook
+export {}

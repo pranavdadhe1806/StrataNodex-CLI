@@ -1,0 +1,2 @@
+// Status badge component
+export {}

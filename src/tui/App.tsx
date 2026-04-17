@@ -1,0 +1,2 @@
+// Root Ink component
+export {}

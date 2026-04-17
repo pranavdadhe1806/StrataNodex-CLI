@@ -1,0 +1,2 @@
+// Folder item component
+export {}
