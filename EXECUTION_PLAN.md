@@ -49,7 +49,7 @@ These apply to **every** task. Never violate them.
 
 ### Task 0.1 — Init package.json
 
-- [ ] Create `package.json` with:
+- [x] Create `package.json` with:
   - `"type": "module"` (ESM)
   - `"engines": { "node": ">=20.0.0" }`
   - `"bin": { "stratanodex": "./dist/index.js" }`
@@ -61,7 +61,7 @@ These apply to **every** task. Never violate them.
 
 ### Task 0.2 — Create tsconfig.json
 
-- [ ] Create `tsconfig.json` with:
+- [x] Create `tsconfig.json` with:
   - `"target": "ES2022"`, `"module": "NodeNext"`, `"moduleResolution": "NodeNext"`
   - `"jsx": "react-jsx"`, `"resolveJsonModule": true`, `"declaration": false`
   - `"outDir": "./dist"`, `"rootDir": "./src"`
@@ -72,31 +72,31 @@ These apply to **every** task. Never violate them.
 
 ### Task 0.3 — ESLint + Prettier + .editorconfig
 
-- [ ] Create `eslint.config.js` (flat config) with TypeScript + React rules
-- [ ] Create `.prettierrc.json` with: `{ "semi": false, "singleQuote": true, "printWidth": 100 }`
-- [ ] Create `.editorconfig` with: `indent_style = space`, `indent_size = 2`, `end_of_line = lf`
-- [ ] Add `.prettierignore` and `.eslintignore` (ignore `dist/`, `node_modules/`)
+- [x] Create `eslint.config.js` (flat config) with TypeScript + React rules
+- [x] Create `.prettierrc.json` with: `{ "semi": false, "singleQuote": true, "printWidth": 100 }`
+- [x] Create `.editorconfig` with: `indent_style = space`, `indent_size = 2`, `end_of_line = lf`
+- [x] Add `.prettierignore` and `.eslintignore` (ignore `dist/`, `node_modules/`)
 
 **Acceptance**: `npm run lint` and `npm run format` run without errors.
 
 ### Task 0.4 — Husky + lint-staged
 
-- [ ] Run `npm run prepare` to init Husky
-- [ ] Create `.husky/pre-commit` hook that runs `npx lint-staged`
-- [ ] Create `.lintstagedrc.json`:
+- [x] Run `npm run prepare` to init Husky
+- [x] Create `.husky/pre-commit` hook that runs `npx lint-staged`
+- [x] Create `.lintstagedrc.json`:
   ```json
   {
     "*.{ts,tsx}": ["eslint --fix", "prettier --write"],
     "*.{json,md}": ["prettier --write"]
   }
   ```
-- [ ] Add pre-commit check: `npm run typecheck && npm run test --run`
+- [x] Add pre-commit check: `npm run typecheck && npm run test --run`
 
 **Acceptance**: Making a commit runs lint + typecheck + tests.
 
 ### Task 0.5 — Vitest config + sample test
 
-- [ ] Create `vitest.config.ts`:
+- [x] Create `vitest.config.ts`:
   ```ts
   import { defineConfig } from 'vitest/config'
   export default defineConfig({
@@ -106,7 +106,7 @@ These apply to **every** task. Never violate them.
     },
   })
   ```
-- [ ] Create `src/utils/sample.test.ts`:
+- [x] Create `src/utils/sample.test.ts`:
   ```ts
   import { describe, it, expect } from 'vitest'
   describe('sample', () => {
@@ -120,7 +120,7 @@ These apply to **every** task. Never violate them.
 
 ### Task 0.6 — GitHub Actions CI
 
-- [ ] Create `.github/workflows/ci.yml`:
+- [x] Create `.github/workflows/ci.yml`:
   - Trigger on push + PR
   - Job: `node 20`, `npm ci`, `npm run lint`, `npm run typecheck`, `npm run test`, `npm run build`
 
@@ -128,13 +128,13 @@ These apply to **every** task. Never violate them.
 
 ### Task 0.7 — src/index.ts smoke test
 
-- [ ] Create `src/index.ts`:
+- [x] Create `src/index.ts`:
   ```ts
   #!/usr/bin/env node
   console.log('StrataNodex CLI v0.1.0')
   ```
-- [ ] Make it executable: `chmod +x src/index.ts` (if on Unix)
-- [ ] Run `npm run dev` — should print version
+- [x] Make it executable: `chmod +x src/index.ts` (if on Unix)
+- [x] Run `npm run dev` — should print version
 
 **Acceptance**: `npm run dev` prints "StrataNodex CLI v0.1.0".
 
@@ -365,6 +365,23 @@ These apply to **every** task. Never violate them.
 
 **Goal**: Build the Ink TUI with screen navigation, hooks, and basic components.
 
+### Task 3.0 — src/tui/screens/WelcomeScreen.tsx
+
+- [ ] Create `src/tui/screens/WelcomeScreen.tsx`:
+  - Show ASCII art logo of `StrataNodex` using chalk (box-drawn characters or figlet-style)
+  - Below ASCII art, show a short welcome message: `"Your keyboard-driven task manager"`
+  - Show version number from `package.json`
+  - After 1.5s (or on any keypress), transition to next screen:
+    - If logged in → push `HomeScreen`
+    - If not logged in → push `LoginScreen`
+  - This is always the **first screen** rendered by `App.tsx`
+
+> **Guest mode (for testing)**: If `STRATANODEX_GUEST=true` env var is set, skip auth check and push `HomeScreen` directly with mock data. Comment this block clearly with `// GUEST MODE — remove before production`.
+
+**Files**: `src/tui/screens/WelcomeScreen.tsx`
+
+**Acceptance**: `npm run dev` shows ASCII art → transitions to HomeScreen (guest) or LoginScreen.
+
 ### Task 3.1 — src/tui/App.tsx
 
 - [ ] Create `src/tui/App.tsx`:
@@ -380,12 +397,31 @@ These apply to **every** task. Never violate them.
 
 - [ ] Create `src/tui/hooks/useAuth.ts`:
   - Check if token exists via `getToken()`
-  - If no token, push `LoginScreen` to stack
-  - Export `isLoggedIn` boolean
+  - If no token, return `isLoggedIn: false`
+  - Export `isLoggedIn: boolean`, `user: string | null`
+  - **Guest mode**: if `STRATANODEX_GUEST=true`, always return `isLoggedIn: true` with `user: 'guest'`
+    - Comment block: `// GUEST MODE — for local testing only, remove before production`
 
 **Files**: `src/tui/hooks/useAuth.ts`
 
-**Acceptance**: Hook returns correct login state.
+**Acceptance**: Returns `isLoggedIn: true` in guest mode, `false` with no token in normal mode.
+
+### Task 3.2a — src/tui/screens/LoginScreen.tsx
+
+> **Note**: This screen is referenced in `useAuth.ts` and `WelcomeScreen.tsx` but was previously undefined. Build it here.
+
+- [ ] Create `src/tui/screens/LoginScreen.tsx`:
+  - Show a message: `"Login required — open the link below in your browser:"`
+  - Show the account/login URL: `https://stratanodex.com/login` (or from config)
+  - Instruct the user to run `stratanodex login` (command mode) to authenticate
+  - While waiting, poll `getToken()` every 2s — if token appears, push `HomeScreen`
+  - `q` → quit app
+
+> **Why this design**: The CLI login command (`src/commands/login.ts`) handles the actual credential flow. The TUI `LoginScreen` just informs the user and waits for the token to appear.
+
+**Files**: `src/tui/screens/LoginScreen.tsx`
+
+**Acceptance**: Screen renders, polling detects token and transitions to HomeScreen.
 
 ### Task 3.3 — src/tui/hooks/useNavigation.ts
 
