@@ -149,7 +149,7 @@ These apply to **every** task. Never violate them.
 - [ ] Create `src/config.ts`:
   - Export `getConfig()` function
   - Resolution order: CLI flag > env var (`STRATANODEX_API_URL`) > conf store > `.env` > default
-  - Default API URL: `https://api.stratanodex.com` (or dev URL if env is dev)
+  - Default API URL: `https://stratanodex-backend.onrender.com`
   - Support `--api-url` flag, `--verbose` flag
 
 **Files**: `src/config.ts`
@@ -185,7 +185,10 @@ These apply to **every** task. Never violate them.
   - Create axios instance with `baseURL` from config
   - Add request interceptor: attach JWT from `getToken()` as `Authorization: Bearer <token>`
   - Add response interceptor: wrap errors in `ApiError` class
-  - Handle 401: auto-clear token + throw `ApiError` with message "Session expired. Please log in again."
+  - **Error format from API**: `{ "error": "Human-readable message" }` — extract `error` field (NOT `message`)
+  - Handle `401`: auto-clear token + throw `ApiError` with message "Session expired. Please log in again."
+  - Handle `429`: throw `ApiError` with message "Too many requests, please wait a moment."
+  - Handle `5xx`: throw `ApiError` with generic message (backend returns generic string in production)
 
 **Files**: `src/api/client.ts`, `src/api/ApiError.ts`
 
@@ -194,9 +197,15 @@ These apply to **every** task. Never violate them.
 ### Task 1.5 — src/types/index.ts
 
 - [ ] Create `src/types/index.ts`:
-  - Define types: `Node`, `Folder`, `List`, `Tag`, `DailyScore`
-  - Define enums: `NodeStatus` (`TODO`, `IN_PROGRESS`, `DONE`), `Priority` (`LOW`, `MEDIUM`, `HIGH`)
-  - Mirror backend Prisma schema (check with backend team if needed)
+  - Define enums: `NodeStatus` (`TODO` | `IN_PROGRESS` | `DONE`), `Priority` (`LOW` | `MEDIUM` | `HIGH`)
+  - Define `User`: `{ id, email, phone, name, isEmailVerified, isPhoneVerified, twoFactorEnabled, twoFactorMethod, dayStartTime, dayEndTime, createdAt }`
+  - Define `Folder`: `{ id, name, position, userId, createdAt, updatedAt }`
+  - Define `List`: `{ id, name, position, folderId, userId, createdAt, updatedAt }`
+  - Define `Tag`: `{ id, name, color, listId, userId, createdAt, updatedAt }`
+  - Define `Node`: `{ id, title, status: NodeStatus, priority: Priority | null, notes, startAt, endAt, reminderAt, canvasX, canvasY, position, parentId, listId, userId, createdAt, updatedAt, children: Node[], tags: Array<{ tag: Tag }> }` — **children are nested inline by the API**
+  - Define `DailyScore`: `{ id, userId, listId, date, totalNodes, doneNodes, points, createdAt }`
+  - Define `LoginResponse`: `{ user: User, token: string } | { requiresTwoFactor: true, userId: string }`
+  - Define `ApiErrorResponse`: `{ error: string }`
 
 **Files**: `src/types/index.ts`
 
@@ -206,8 +215,9 @@ These apply to **every** task. Never violate them.
 
 - [ ] Create `src/utils/numbering.ts`:
   - Function `assignNumbers(nodes: Node[]): Map<string, string>`
-  - Takes flat list of nodes (with `parentId`), returns map of `nodeId -> number` (e.g., `"1.2.1"`)
-  - Algorithm: DFS traversal, track depth + sibling index
+  - **API returns nodes pre-nested** (`children` array embedded). Takes nested `Node[]` (root nodes with children), returns map of `nodeId -> number` (e.g., `"1.2.1"`)
+  - Algorithm: DFS traversal over `children` arrays, track depth + sibling index
+  - Also export `flattenTree(nodes: Node[]): Node[]` here (DFS flatten of nested tree) — used by `done` command to resolve number → id
 - [ ] Create `src/utils/numbering.test.ts`:
   - Test flat list → correct numbering
   - Test nested 3 levels deep
@@ -256,9 +266,12 @@ These apply to **every** task. Never violate them.
 
 - [ ] Create `src/commands/login.ts`:
   - Use `@inkjs/ui` to prompt for email + password
-  - POST to `/api/auth/login` with credentials
-  - On success: save JWT via `saveToken()`, print "Logged in as <email>"
-  - On error: print user-friendly message from `ApiError`
+  - POST to `POST /api/auth/login` with `{ email, password }`
+  - **Handle two response shapes**:
+    - Normal: `{ user, token }` → call `saveToken(token)`, print "Logged in as <email>"
+    - 2FA required: `{ requiresTwoFactor: true, userId }` → prompt for 6-digit OTP code → POST to `POST /api/auth/2fa/verify` with `{ userId, code }` → on success save token
+  - On error: print `err.message` from `ApiError` (which wraps `response.data.error`)
+  - Rate limit (429): print "Too many login attempts. Wait a moment."
 
 **Files**: `src/commands/login.ts`
 
@@ -288,16 +301,54 @@ These apply to **every** task. Never violate them.
 ### Task 2.4 — src/api/client.ts (part 2: endpoints)
 
 - [ ] Add API functions to `src/api/client.ts`:
+
+  **Auth**
+  - `login(email: string, password: string): Promise<LoginResponse>` → POST `/api/auth/login`
+  - `verify2FA(userId: string, code: string): Promise<{ user: User; token: string }>` → POST `/api/auth/2fa/verify`
+  - `getMe(): Promise<User>` → GET `/api/auth/me` (use to validate stored token on startup)
+  - `healthCheck(): Promise<{ status: string }>` → GET `/health`
+
+  **Folders** (full CRUD)
   - `getFolders(): Promise<Folder[]>` → GET `/api/folders`
+  - `createFolder(name: string, position?: number): Promise<Folder>` → POST `/api/folders`
+  - `updateFolder(id: string, data: { name?: string; position?: number }): Promise<Folder>` → PATCH `/api/folders/:id`
+  - `deleteFolder(id: string): Promise<void>` → DELETE `/api/folders/:id` _(cascades to lists + nodes)_
+
+  **Lists** (full CRUD)
   - `getLists(folderId: string): Promise<List[]>` → GET `/api/folders/:folderId/lists`
-  - `getNodes(listId: string): Promise<Node[]>` → GET `/api/lists/:listId/nodes`
-  - `createNode(listId: string, data: Partial<Node>): Promise<Node>` → POST `/api/lists/:listId/nodes`
-  - `updateNode(nodeId: string, data: Partial<Node>): Promise<Node>` → PATCH `/api/nodes/:nodeId`
-  - `deleteNode(nodeId: string): Promise<void>` → DELETE `/api/nodes/:nodeId`
+  - `createList(name: string, folderId: string, position?: number): Promise<List>` → POST `/api/lists`
+  - `updateList(id: string, data: { name?: string; position?: number }): Promise<List>` → PATCH `/api/lists/:id`
+  - `deleteList(id: string): Promise<void>` → DELETE `/api/lists/:id` _(cascades to nodes)_
+
+  **Nodes**
+  - `getNodes(listId: string): Promise<Node[]>` → GET `/api/lists/:listId/nodes` — **returns nested tree** (root nodes with `children[]` embedded)
+  - `getNode(id: string): Promise<Node>` → GET `/api/nodes/:id`
+  - `createRootNode(listId: string, data: Partial<Node>): Promise<Node>` → POST `/api/lists/:listId/nodes` _(requires `listId` in body too)_
+  - `createChildNode(parentId: string, data: Partial<Node>): Promise<Node>` → POST `/api/nodes/:parentId/children` _(listId inherited from parent)_
+  - `updateNode(id: string, data: Partial<Node>): Promise<Node>` → PATCH `/api/nodes/:id`
+  - `moveNode(id: string, parentId: string | null, position: number): Promise<Node>` → PATCH `/api/nodes/:id/move` — **use this for indent/outdent/reorder, NOT updateNode**
+  - `deleteNode(id: string): Promise<void>` → DELETE `/api/nodes/:id` _(cascades to all children)_
+
+  **Tags**
+  - `getTags(listId?: string): Promise<Tag[]>` → GET `/api/tags?listId=...`
+  - `createTag(name: string, color?: string, listId?: string): Promise<Tag>` → POST `/api/tags`
+  - `updateTag(id: string, data: { name?: string; color?: string }): Promise<Tag>` → PATCH `/api/tags/:id`
+  - `deleteTag(id: string): Promise<void>` → DELETE `/api/tags/:id`
+  - `attachTag(nodeId: string, tagId: string): Promise<void>` → POST `/api/nodes/:id/tags/:tagId`
+  - `detachTag(nodeId: string, tagId: string): Promise<void>` → DELETE `/api/nodes/:id/tags/:tagId`
+
+  **Daily**
+  - `getDailyToday(): Promise<Node[]>` → GET `/api/daily/today`
+  - `getDailyOverdue(): Promise<Node[]>` → GET `/api/daily/overdue`
+  - `getDailyScore(date: string): Promise<DailyScore>` → GET `/api/daily/:date` (format: `YYYY-MM-DD`)
+
+  **Scores**
+  - `getScores(limit?: number, listId?: string): Promise<DailyScore[]>` → GET `/api/scores`
+  - `getStreak(): Promise<{ streak: number }>` → GET `/api/scores/streak`
 
 **Files**: `src/api/client.ts`
 
-**Acceptance**: Functions defined, typed correctly.
+**Acceptance**: All functions defined, typed correctly. No calls to `updateNode()` for positional moves — use `moveNode()` instead.
 
 ### Task 2.5 — src/commands/list.ts
 
@@ -315,8 +366,8 @@ These apply to **every** task. Never violate them.
 
 - [ ] Create `src/commands/add.ts`:
   - Syntax: `add "Task title" [--list <listId>] [--parent <number>]`
-  - If `--parent` given, resolve number to node ID via cached tree
-  - Call `createNode(listId, { title, parentId })`
+  - If **no `--parent`**: call `createRootNode(listId, { title })` → POST `/api/lists/:listId/nodes`
+  - If **`--parent` given**: resolve number → nodeId via `flattenTree(getNodes()) + assignNumbers()`, then call `createChildNode(parentId, { title })` → POST `/api/nodes/:parentId/children`
   - Print "Added: <title>"
 
 **Files**: `src/commands/add.ts`
@@ -384,14 +435,40 @@ These apply to **every** task. Never violate them.
 
 ### Task 3.1 — src/tui/App.tsx
 
-- [ ] Create `src/tui/App.tsx`:
-  - Manage screen stack (array of screen names)
-  - Render current screen based on stack top
-  - Global error boundary (catch errors, show friendly message)
+> **UI Reference**: Re-attach the layout reference image here when implementing. The image shows the exact 3-zone shell: fixed header top, scrollable output middle, fixed input bar bottom.
+
+- [ ] Create `src/tui/App.tsx` as the **persistent 3-zone shell** — this is NOT a screen, it is the frame all screens render inside:
+
+  **Zone 1 — Header (fixed top)**
+  - Outer `Box` with `borderStyle="round"` wrapping the entire app
+  - Large bold title: `StrataNodex - CLI`
+  - Version pulled from `package.json`
+  - Greeting: `Welcome Back, <user.name>` (fallback to `Guest`)
+  - `flexShrink={0}` — never shrinks
+
+  **Zone 2 — Output Section (scrollable middle)**
+  - Inner `Box` with `borderStyle="single"` and title `Output Section`
+  - `flexGrow={1}` — fills all remaining vertical space
+  - Wrap content in `<ScrollArea height={dynamicHeight}>` from `@inkjs/ui`
+  - `dynamicHeight = process.stdout.rows - HEADER_ROWS - FOOTER_ROWS`
+  - Renders the current screen component here (HomeScreen, ListsScreen, TreeScreen, etc.)
+  - Listen to `process.stdout` `resize` event to recalculate height dynamically
+
+  **Zone 3 — Input Bar (fixed bottom)**
+  - `Box` with `borderStyle="single"`, `flexShrink={0}`
+  - `<TextInput>` from `ink-text-input` for slash-command entry
+  - Placeholder text changes per screen: e.g. `/search  /add  /delete  /done <n>  /back`
+  - `Enter` dispatches command string to the active screen's command handler
+  - `Esc` clears input without dispatching
+
+  **General**
+  - Manage screen stack (array of screen names): `pushScreen(name)`, `popScreen()`
+  - Global error boundary: catch render errors, show friendly message in output zone
+  - Respect `NO_COLOR` env var: if set, omit chalk colors and use plain borders
 
 **Files**: `src/tui/App.tsx`
 
-**Acceptance**: Renders a placeholder screen.
+**Acceptance**: `npm run dev` opens TUI showing the 3-zone layout — fixed header with title+version+greeting, scrollable output section in the middle with its own border, fixed command input bar at the bottom.
 
 ### Task 3.2 — src/tui/hooks/useAuth.ts
 
@@ -528,10 +605,11 @@ These apply to **every** task. Never violate them.
 ### Task 3.10 — src/tui/hooks/useTree.ts
 
 - [ ] Create `src/tui/hooks/useTree.ts`:
-  - Fetch nodes for a list via `getNodes(listId)`
-  - Manage expand/collapse state per node
-  - Assign dynamic numbers via `assignNumbers()`
-  - Export `nodes`, `expandedIds`, `toggleExpand`, `loading`, `error`, `refetch`
+  - Fetch nodes via `getNodes(listId)` — **API returns pre-nested tree** (root nodes with `children[]` embedded, no client-side tree building needed)
+  - Manage expand/collapse state per node (start with all roots expanded, children collapsed)
+  - Assign dynamic display numbers via `assignNumbers(nestedNodes)` from `src/utils/numbering.ts`
+  - Export `nodes` (nested), `flatNodes` (DFS-flattened for cursor nav), `expandedIds`, `toggleExpand`, `numberMap`, `loading`, `error`, `refetch`
+  - `flatNodes` is re-computed from `nodes` + `expandedIds` on every change (only include nodes whose ancestors are all expanded)
 
 **Files**: `src/tui/hooks/useTree.ts`
 
@@ -555,10 +633,11 @@ These apply to **every** task. Never violate them.
 ### Task 3.12 — src/tui/screens/DailyScreen.tsx
 
 - [ ] Create `src/tui/screens/DailyScreen.tsx`:
-  - Fetch all nodes (across all lists)
-  - Filter client-side: `startAt <= today <= endAt`
-  - Group: "Today" vs "Overdue" (endAt < today && status !== DONE)
-  - Render with `NodeRow`
+  - Call `getDailyToday()` → GET `/api/daily/today` (non-DONE nodes whose date range overlaps today)
+  - Call `getDailyOverdue()` → GET `/api/daily/overdue` (non-DONE nodes whose `endAt` < today)
+  - **Do NOT filter client-side** — server already filters correctly
+  - Group into two sections: "Today" and "Overdue"
+  - Render each group with `NodeRow`
 
 **Files**: `src/tui/screens/DailyScreen.tsx`
 
@@ -643,8 +722,8 @@ These apply to **every** task. Never violate them.
 - [ ] Update `src/tui/screens/TreeScreen.tsx`:
   - `Tab` → indent node (make child of previous sibling)
   - `Shift+Tab` → outdent node (promote to parent level)
-  - Use `indentNode()` / `outdentNode()` from `src/utils/tree.ts`
-  - Call `updateNode()` to persist new `parentId`
+  - Use `indentNode()` / `outdentNode()` from `src/utils/tree.ts` to compute new `parentId` + `position`
+  - Call `moveNode(id, newParentId, newPosition)` → PATCH `/api/nodes/:id/move` — **NOT `updateNode()`**
 
 **Files**: `src/tui/screens/TreeScreen.tsx`
 
@@ -655,8 +734,8 @@ These apply to **every** task. Never violate them.
 - [ ] Update `src/tui/screens/TreeScreen.tsx`:
   - `Shift+↑` → move node up among siblings
   - `Shift+↓` → move node down among siblings
-  - Use `reorderSiblings()` from `src/utils/tree.ts`
-  - Call `updateNode()` to persist new `order`
+  - Use `reorderSiblings()` from `src/utils/tree.ts` to compute new `position`
+  - Call `moveNode(id, sameParentId, newPosition)` → PATCH `/api/nodes/:id/move` — **NOT `updateNode()`**
 
 **Files**: `src/tui/screens/TreeScreen.tsx`
 
@@ -727,9 +806,10 @@ These apply to **every** task. Never violate them.
 ### Task 5.5 — Daily Tasks view enhancements
 
 - [ ] Update `src/tui/screens/DailyScreen.tsx`:
-  - Group nodes: "Today" vs "Overdue"
-  - Show completion % for today
-  - Show streak (if backend provides it)
+  - Group nodes: "Today" vs "Overdue" (already from separate API calls)
+  - Show completion % for today: `doneNodes / totalNodes * 100` from `getDailyScore(today)`
+  - Show streak via `getStreak()` → GET `/api/scores/streak` — **confirmed live endpoint**
+  - Display format: `Streak: 5 days • Today: 7/10 (70%)`
 
 **Files**: `src/tui/screens/DailyScreen.tsx`
 
@@ -804,19 +884,93 @@ These apply to **every** task. Never violate them.
 
 ## Appendix A — API Contract Reference
 
-| Endpoint                 | Method | Request                     | Response            | Status    |
-| ------------------------ | ------ | --------------------------- | ------------------- | --------- |
-| `/api/auth/login`        | POST   | `{ email, password }`       | `{ token, user }`   | [live]    |
-| `/api/folders`           | GET    | -                           | `Folder[]`          | [live]    |
-| `/api/folders/:id/lists` | GET    | -                           | `List[]`            | [live]    |
-| `/api/lists/:id/nodes`   | GET    | -                           | `Node[]`            | [live]    |
-| `/api/lists/:id/nodes`   | POST   | `{ title, parentId?, ... }` | `Node`              | [live]    |
-| `/api/nodes/:id`         | PATCH  | `{ title?, status?, ... }`  | `Node`              | [live]    |
-| `/api/nodes/:id`         | DELETE | -                           | `void`              | [live]    |
-| `/api/daily`             | GET    | -                           | `Node[]` (filtered) | [pending] |
-| `/api/stats`             | GET    | -                           | `{ streak, score }` | [pending] |
+> **Base URL**: `https://stratanodex-backend.onrender.com`
+> **Auth header**: `Authorization: Bearer <token>` (JWT, expires in 7 days)
+> **Error format**: `{ "error": "Human-readable message" }` — always extract `.error`, never `.message`
+> **Rate limits**: 100 req/15min (general) · 10 req/15min (auth) · 3 req/10min (OTP)
 
-**Note**: For `[pending]` endpoints, use `--mock` flag to return JSON fixtures from `src/api/mocks/`.
+### Health
+
+| Method | Endpoint  | Auth | Request | Response                      |
+| ------ | --------- | ---- | ------- | ----------------------------- |
+| GET    | `/health` | 🔓   | —       | `{ status: "ok", timestamp }` |
+
+### Auth
+
+| Method | Endpoint                       | Auth | Request                                  | Response                                                   |
+| ------ | ------------------------------ | ---- | ---------------------------------------- | ---------------------------------------------------------- |
+| POST   | `/api/auth/register`           | 🔓   | `{ email, password, name? }`             | `{ user, message: "Check your email for OTP" }`            |
+| POST   | `/api/auth/login`              | 🔓   | `{ email, password }`                    | `{ user, token }` OR `{ requiresTwoFactor: true, userId }` |
+| POST   | `/api/auth/2fa/verify`         | 🔓   | `{ userId, code }`                       | `{ user, token }`                                          |
+| POST   | `/api/auth/phone-login`        | 🔓   | `{ phone }`                              | `{ message }`                                              |
+| POST   | `/api/auth/phone-login/verify` | 🔓   | `{ phone, code }`                        | `{ user, token }`                                          |
+| POST   | `/api/auth/forgot-password`    | 🔓   | `{ email }`                              | `{ message }`                                              |
+| POST   | `/api/auth/reset-password`     | 🔓   | `{ email, code, newPassword }`           | `{ message }`                                              |
+| GET    | `/api/auth/me`                 | 🔐   | —                                        | `User` object                                              |
+| POST   | `/api/auth/verify-email`       | 🔐   | `{ code }`                               | `{ message }`                                              |
+| POST   | `/api/auth/verify-phone`       | 🔐   | `{ code }`                               | `{ message }`                                              |
+| POST   | `/api/auth/resend-otp`         | 🔐   | `{ type: OtpType, channel: OtpChannel }` | `{ message }`                                              |
+| POST   | `/api/auth/2fa/enable`         | 🔐   | `{ method: "EMAIL"\|"SMS"\|"TOTP" }`     | `User` object                                              |
+| POST   | `/api/auth/2fa/disable`        | 🔐   | —                                        | `User` object                                              |
+
+### Folders (all 🔐)
+
+| Method | Endpoint           | Request                | Response   | Notes                         |
+| ------ | ------------------ | ---------------------- | ---------- | ----------------------------- |
+| GET    | `/api/folders`     | —                      | `Folder[]` |                               |
+| POST   | `/api/folders`     | `{ name, position? }`  | `Folder`   |                               |
+| PATCH  | `/api/folders/:id` | `{ name?, position? }` | `Folder`   |                               |
+| DELETE | `/api/folders/:id` | —                      | `204`      | Cascades to all lists + nodes |
+
+### Lists (all 🔐)
+
+| Method | Endpoint                       | Request                         | Response | Notes                 |
+| ------ | ------------------------------ | ------------------------------- | -------- | --------------------- |
+| GET    | `/api/folders/:folderId/lists` | —                               | `List[]` |                       |
+| POST   | `/api/lists`                   | `{ name, folderId, position? }` | `List`   |                       |
+| PATCH  | `/api/lists/:id`               | `{ name?, position? }`          | `List`   |                       |
+| DELETE | `/api/lists/:id`               | —                               | `204`    | Cascades to all nodes |
+
+### Nodes (all 🔐)
+
+| Method | Endpoint                        | Request                                                                                                     | Response | Notes                                                           |
+| ------ | ------------------------------- | ----------------------------------------------------------------------------------------------------------- | -------- | --------------------------------------------------------------- |
+| GET    | `/api/lists/:listId/nodes`      | —                                                                                                           | `Node[]` | **Returns nested tree** — root nodes with `children[]` embedded |
+| GET    | `/api/nodes/:id`                | —                                                                                                           | `Node`   | Includes `children` + `tags`                                    |
+| POST   | `/api/lists/:listId/nodes`      | `{ title, listId (required), parentId?, status?, priority?, notes?, startAt?, endAt?, position?, tagIds? }` | `Node`   | Create **root** node — `listId` required in body too            |
+| POST   | `/api/nodes/:parentId/children` | `{ title, status?, priority?, notes?, startAt?, endAt?, position?, tagIds? }`                               | `Node`   | Create **child** node — `listId` inherited from parent          |
+| PATCH  | `/api/nodes/:id`                | `{ title?, status?, priority?, notes?, startAt?, endAt?, parentId?, position?, tagIds? }`                   | `Node`   | General update — **do not use for moving**                      |
+| PATCH  | `/api/nodes/:id/move`           | `{ parentId: string\|null, position: number }`                                                              | `Node`   | **Move/reorder** — use for indent, outdent, Shift+↑/↓           |
+| DELETE | `/api/nodes/:id`                | —                                                                                                           | `204`    | Cascades to all children                                        |
+
+### Tags (all 🔐)
+
+| Method | Endpoint                     | Request                     | Response            | Notes                        |
+| ------ | ---------------------------- | --------------------------- | ------------------- | ---------------------------- |
+| GET    | `/api/tags`                  | `?listId=` (optional)       | `Tag[]`             | Returns global + list-scoped |
+| POST   | `/api/tags`                  | `{ name, color?, listId? }` | `Tag`               |                              |
+| PATCH  | `/api/tags/:id`              | `{ name?, color? }`         | `Tag`               |                              |
+| DELETE | `/api/tags/:id`              | —                           | `204`               | Auto-detaches from all nodes |
+| POST   | `/api/nodes/:id/tags/:tagId` | —                           | `{ nodeId, tagId }` | Attach tag to node           |
+| DELETE | `/api/nodes/:id/tags/:tagId` | —                           | `204`               | Detach tag from node         |
+
+### Daily (all 🔐)
+
+| Method | Endpoint             | Request                           | Response             | Notes                                      |
+| ------ | -------------------- | --------------------------------- | -------------------- | ------------------------------------------ |
+| GET    | `/api/daily/today`   | —                                 | `Node[]`             | Non-DONE nodes overlapping today           |
+| GET    | `/api/daily/overdue` | —                                 | `Node[]`             | Non-DONE nodes with `endAt` before today   |
+| GET    | `/api/daily/:date`   | —                                 | `DailyScore`         | Date format: `YYYY-MM-DD`; 404 if no score |
+| POST   | `/api/daily/compute` | `{ date: "YYYY-MM-DD", listId? }` | `{ message, jobId }` | Async — queues score computation           |
+
+### Scores (all 🔐)
+
+| Method | Endpoint             | Request                    | Response             | Notes                            |
+| ------ | -------------------- | -------------------------- | -------------------- | -------------------------------- |
+| GET    | `/api/scores`        | `?limit=30&listId=` (opt.) | `DailyScore[]`       | Ordered by date desc             |
+| GET    | `/api/scores/streak` | —                          | `{ streak: number }` | Consecutive days with points > 0 |
+
+> **CLI uses**: `login`, `2fa/verify`, `getMe`, `folders CRUD`, `lists CRUD`, `nodes CRUD + move`, `daily/today`, `daily/overdue`, `scores/streak`. Tags, OTP, 2FA enable/disable, phone-login, password-reset are not needed for CLI v1 but types should be defined.
 
 ---
 

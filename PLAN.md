@@ -160,6 +160,73 @@ This opens the full 3-screen interactive interface.
 
 ---
 
+## TUI App Shell Layout
+
+> **Reference**: The image provided at Phase 3 (Task 3.1) shows the exact target layout. Re-attach it when implementing `App.tsx`.
+
+The entire TUI runs inside a **persistent 3-zone shell**. The top and bottom zones are always fixed on screen. Only the middle output zone scrolls. This shell is the root `App.tsx` component — all screens render _into_ the middle zone.
+
+```
+┌─────────────────────────────────────────────────────┐
+│              StrataNodex - CLI          [FIXED TOP] │
+│                    v 1.0.0                           │
+│               Welcome Back, User Name               │
+├─────────────────────────────────────────────────────┤
+│  ┌───────────────────────────────────────────────┐  │
+│  │            Output Section          [SCROLLS]  │  │
+│  │                                               │  │
+│  │  > Folder 1                                   │  │
+│  │    > List A                                   │  │
+│  │      1. Task one                              │  │
+│  │      2. Task two          ↑ scrolls ↓         │  │
+│  │    > List B                                   │  │
+│  │  > Folder 2                                   │  │
+│  └───────────────────────────────────────────────┘  │
+├─────────────────────────────────────────────────────┤
+│  /search  /add  /delete  /done  ...    [FIXED BOT]  │
+└─────────────────────────────────────────────────────┘
+```
+
+### Zone 1 — Header (fixed, top)
+
+- Large bold title: `StrataNodex - CLI`
+- Version from `package.json`: `v X.X.X`
+- Greeting: `Welcome Back, <user.name>` (or `Guest` if not logged in)
+- Outer border wraps the entire terminal view (`borderStyle="round"`)
+
+### Zone 2 — Output Section (scrollable, middle)
+
+- Has its own inner border box
+- Title bar: `Output Section` (or current screen context e.g. `Folders`, `Project A`)
+- Content renders whatever the current active screen returns
+  - Home screen → folder list
+  - Lists screen → lists inside a folder
+  - Tree screen → node tree with connectors + numbering
+  - Daily screen → today + overdue nodes
+- Scrollable via `↑`/`↓` arrow keys
+- Height: dynamic — `process.stdout.rows` minus fixed header + footer row count
+- Implemented with `<ScrollArea>` from `@inkjs/ui` (already in `package.json`)
+
+### Zone 3 — Input Bar (fixed, bottom)
+
+- Persistent command input pinned to the bottom
+- Placeholder text shows context-sensitive available commands for current screen
+  - e.g. `/search` `/add` `/delete` `/done <number>` `/back`
+- Accepts slash-commands typed by the user
+- Uses `<TextInput>` from `ink-text-input` (already in `package.json`)
+- `Enter` dispatches the command to the current screen's handler
+
+### Layout Implementation Rules
+
+- Root `Box`: `borderStyle="round"`, `flexDirection="column"`, fills terminal
+- Zone 1 (header): fixed height, `flexShrink={0}`
+- Zone 2 (output): `flexGrow={1}`, contains `<ScrollArea height={dynamicHeight}>`
+- Zone 3 (input): fixed height, `flexShrink={0}`
+- On terminal resize: recalculate `ScrollArea` height from `process.stdout.rows`
+- `NO_COLOR` respected: borders/text fall back to plain ASCII if env var set
+
+---
+
 ## Keyboard Controls Reference
 
 ### Navigation Mode (default)
