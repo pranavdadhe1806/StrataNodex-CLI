@@ -80,7 +80,11 @@ program
   })
 
 if (process.argv.length === 2) {
-  console.log('TUI coming soon. Use --help to see available commands.')
+  const { render } = await import('ink')
+  const React = (await import('react')).default
+  const { App } = await import('./tui/App.js')
+  const { waitUntilExit } = render(React.createElement(App))
+  await waitUntilExit()
   process.exit(0)
 }
 

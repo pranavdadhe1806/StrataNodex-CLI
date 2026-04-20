@@ -418,7 +418,7 @@ These apply to **every** task. Never violate them.
 
 ### Task 3.0 — src/tui/screens/WelcomeScreen.tsx
 
-- [ ] Create `src/tui/screens/WelcomeScreen.tsx`:
+- [x] Create `src/tui/screens/WelcomeScreen.tsx`:
   - Show ASCII art logo of `StrataNodex` using chalk (box-drawn characters or figlet-style)
   - Below ASCII art, show a short welcome message: `"Your keyboard-driven task manager"`
   - Show version number from `package.json`
@@ -437,7 +437,7 @@ These apply to **every** task. Never violate them.
 
 > **UI Reference**: Re-attach the layout reference image here when implementing. The image shows the exact 3-zone shell: fixed header top, scrollable output middle, fixed input bar bottom.
 
-- [ ] Create `src/tui/App.tsx` as the **persistent 3-zone shell** — this is NOT a screen, it is the frame all screens render inside:
+- [x] Create `src/tui/App.tsx` as the **persistent 3-zone shell** — this is NOT a screen, it is the frame all screens render inside:
 
   **Zone 1 — Header (fixed top)**
   - Outer `Box` with `borderStyle="round"` wrapping the entire app
@@ -472,7 +472,7 @@ These apply to **every** task. Never violate them.
 
 ### Task 3.2 — src/tui/hooks/useAuth.ts
 
-- [ ] Create `src/tui/hooks/useAuth.ts`:
+- [x] Create `src/tui/hooks/useAuth.ts`:
   - Check if token exists via `getToken()`
   - If no token, return `isLoggedIn: false`
   - Export `isLoggedIn: boolean`, `user: string | null`
@@ -487,7 +487,7 @@ These apply to **every** task. Never violate them.
 
 > **Note**: This screen is referenced in `useAuth.ts` and `WelcomeScreen.tsx` but was previously undefined. Build it here.
 
-- [ ] Create `src/tui/screens/LoginScreen.tsx`:
+- [x] Create `src/tui/screens/LoginScreen.tsx`:
   - Show a message: `"Login required — open the link below in your browser:"`
   - Show the account/login URL: `https://stratanodex.com/login` (or from config)
   - Instruct the user to run `stratanodex login` (command mode) to authenticate
@@ -502,7 +502,7 @@ These apply to **every** task. Never violate them.
 
 ### Task 3.3 — src/tui/hooks/useNavigation.ts
 
-- [ ] Create `src/tui/hooks/useNavigation.ts`:
+- [x] Create `src/tui/hooks/useNavigation.ts`:
   - Manage screen stack: `pushScreen(name)`, `popScreen()`
   - Export `currentScreen`, `pushScreen`, `popScreen`
 
@@ -512,7 +512,7 @@ These apply to **every** task. Never violate them.
 
 ### Task 3.4 — src/tui/hooks/useKeymap.ts
 
-- [ ] Create `src/tui/hooks/useKeymap.ts`:
+- [x] Create `src/tui/hooks/useKeymap.ts`:
   - Single keyboard event handler using `useInput` from Ink
   - Support modes: `nav` (navigation) vs `edit` (typing)
   - Register keybindings: `↑`, `↓`, `→`, `←`, `Enter`, `b`, `q`, `Esc`, `e`, `o`, `a`, `d`, `Space`, `Tab`, `Shift+Tab`, `Shift+↑`, `Shift+↓`, `/`, `f`, `:`
@@ -524,23 +524,23 @@ These apply to **every** task. Never violate them.
 
 ### Task 3.5 — src/tui/components/ (basic components)
 
-- [ ] Create `src/tui/components/Header.tsx`:
+- [x] Create `src/tui/components/Header.tsx`:
   - Show app name + logged-in user
-- [ ] Create `src/tui/components/Breadcrumb.tsx`:
+- [x] Create `src/tui/components/Breadcrumb.tsx`:
   - Show navigation path (e.g., "Work › Project A › Fix auth bug")
-- [ ] Create `src/tui/components/Keybindings.tsx`:
+- [x] Create `src/tui/components/Keybindings.tsx`:
   - Bottom bar showing available keys for current screen
-- [ ] Create `src/tui/components/StatusBadge.tsx`:
+- [x] Create `src/tui/components/StatusBadge.tsx`:
   - Colored badge: `[TODO]`, `[IN PROGRESS]`, `[DONE]`
-- [ ] Create `src/tui/components/PriorityBadge.tsx`:
+- [x] Create `src/tui/components/PriorityBadge.tsx`:
   - Colored badge: `[HIGH]`, `[MED]`, `[LOW]`
-- [ ] Create `src/tui/components/TreeConnector.tsx`:
+- [x] Create `src/tui/components/TreeConnector.tsx`:
   - Right-angled connectors: `└─`, `│`
-- [ ] Create `src/tui/components/NodeRow.tsx`:
+- [x] Create `src/tui/components/NodeRow.tsx`:
   - Single node row with indentation + connectors + status + priority
-- [ ] Create `src/tui/components/FolderItem.tsx`:
+- [x] Create `src/tui/components/FolderItem.tsx`:
   - Single folder row
-- [ ] Create `src/tui/components/ListItem.tsx`:
+- [x] Create `src/tui/components/ListItem.tsx`:
   - Single list row
 
 **Files**: `src/tui/components/*.tsx`
@@ -549,7 +549,7 @@ These apply to **every** task. Never violate them.
 
 ### Task 3.6 — src/tui/hooks/useFolders.ts
 
-- [ ] Create `src/tui/hooks/useFolders.ts`:
+- [x] Create `src/tui/hooks/useFolders.ts`:
   - Fetch folders via `getFolders()`
   - Manage loading + error state
   - Export `folders`, `loading`, `error`, `refetch`
@@ -560,7 +560,7 @@ These apply to **every** task. Never violate them.
 
 ### Task 3.7 — src/tui/screens/HomeScreen.tsx
 
-- [ ] Create `src/tui/screens/HomeScreen.tsx`:
+- [x] Create `src/tui/screens/HomeScreen.tsx`:
   - Use `useFolders` hook
   - Render list of folders with `FolderItem`
   - Cursor navigation (↑↓)
@@ -577,7 +577,7 @@ These apply to **every** task. Never violate them.
 
 ### Task 3.8 — src/tui/hooks/useLists.ts
 
-- [ ] Create `src/tui/hooks/useLists.ts`:
+- [x] Create `src/tui/hooks/useLists.ts`:
   - Fetch lists for a folder via `getLists(folderId)`
   - Manage loading + error state
   - Export `lists`, `loading`, `error`, `refetch`
@@ -588,7 +588,7 @@ These apply to **every** task. Never violate them.
 
 ### Task 3.9 — src/tui/screens/ListsScreen.tsx
 
-- [ ] Create `src/tui/screens/ListsScreen.tsx`:
+- [x] Create `src/tui/screens/ListsScreen.tsx`:
   - Use `useLists` hook
   - Render list of lists with `ListItem`
   - Cursor navigation (↑↓)
@@ -604,7 +604,7 @@ These apply to **every** task. Never violate them.
 
 ### Task 3.10 — src/tui/hooks/useTree.ts
 
-- [ ] Create `src/tui/hooks/useTree.ts`:
+- [x] Create `src/tui/hooks/useTree.ts`:
   - Fetch nodes via `getNodes(listId)` — **API returns pre-nested tree** (root nodes with `children[]` embedded, no client-side tree building needed)
   - Manage expand/collapse state per node (start with all roots expanded, children collapsed)
   - Assign dynamic display numbers via `assignNumbers(nestedNodes)` from `src/utils/numbering.ts`
@@ -617,7 +617,7 @@ These apply to **every** task. Never violate them.
 
 ### Task 3.11 — src/tui/screens/TreeScreen.tsx
 
-- [ ] Create `src/tui/screens/TreeScreen.tsx`:
+- [x] Create `src/tui/screens/TreeScreen.tsx`:
   - Use `useTree` hook
   - Render tree with `NodeRow` + `TreeConnector`
   - Cursor navigation (↑↓)
@@ -632,7 +632,7 @@ These apply to **every** task. Never violate them.
 
 ### Task 3.12 — src/tui/screens/DailyScreen.tsx
 
-- [ ] Create `src/tui/screens/DailyScreen.tsx`:
+- [x] Create `src/tui/screens/DailyScreen.tsx`:
   - Call `getDailyToday()` → GET `/api/daily/today` (non-DONE nodes whose date range overlaps today)
   - Call `getDailyOverdue()` → GET `/api/daily/overdue` (non-DONE nodes whose `endAt` < today)
   - **Do NOT filter client-side** — server already filters correctly
@@ -645,11 +645,11 @@ These apply to **every** task. Never violate them.
 
 ### Task 3.13 — Component tests for screens
 
-- [ ] Create `src/tui/screens/__tests__/HomeScreen.test.tsx`:
+- [x] Create `src/tui/screens/__tests__/HomeScreen.test.tsx`:
   - Use `ink-testing-library`
   - Test initial render (snapshot)
   - Test pressing `↓` moves cursor
-- [ ] Repeat for `ListsScreen`, `TreeScreen`, `DailyScreen`
+- [x] Repeat for `ListsScreen`, `TreeScreen`, `DailyScreen`
 
 **Files**: `src/tui/screens/__tests__/*.test.tsx`
 
@@ -657,7 +657,7 @@ These apply to **every** task. Never violate them.
 
 ### Task 3.14 — Wire TUI into src/index.ts
 
-- [ ] Update `src/index.ts`:
+- [x] Update `src/index.ts`:
   - If no args, render `<App />` via `ink.render()`
   - Pass global flags to App as props
 
