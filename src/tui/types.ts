@@ -13,5 +13,8 @@ export interface ActionHandlers {
 export interface ScreenProps {
   push: (screen: string, params?: Record<string, string>) => void
   pop: () => void
+  replaceScreen: (screen: string, params?: Record<string, string>) => void
   registerActions: (handlers: Partial<ActionHandlers>) => void
+  height?: number
+  width?: number
 }

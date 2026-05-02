@@ -40,6 +40,7 @@ vi.mock('../../../api/client.js', () => ({
 describe('ListsScreen', () => {
   const push = vi.fn()
   const pop = vi.fn()
+  const replaceScreen = vi.fn()
   let handlers: Partial<ActionHandlers> = {}
   const registerActions = (h: Partial<ActionHandlers>) => {
     handlers = h
@@ -56,6 +57,7 @@ describe('ListsScreen', () => {
       React.createElement(ListsScreen, {
         push,
         pop,
+        replaceScreen,
         registerActions,
         folderId: 'f1',
         folderName: 'Work',
@@ -72,6 +74,7 @@ describe('ListsScreen', () => {
       React.createElement(ListsScreen, {
         push,
         pop,
+        replaceScreen,
         registerActions,
         folderId: 'f1',
         folderName: 'Work',
@@ -89,6 +92,7 @@ describe('ListsScreen', () => {
       React.createElement(ListsScreen, {
         push,
         pop,
+        replaceScreen,
         registerActions,
         folderId: 'f1',
         folderName: 'Work',
@@ -104,6 +108,7 @@ describe('ListsScreen', () => {
       React.createElement(ListsScreen, {
         push,
         pop,
+        replaceScreen,
         registerActions,
         folderId: 'f1',
         folderName: 'Work',

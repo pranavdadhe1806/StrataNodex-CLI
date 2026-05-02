@@ -24,6 +24,7 @@ vi.mock('../../../api/client.js', () => ({
 describe('HomeScreen', () => {
   const push = vi.fn()
   const pop = vi.fn()
+  const replaceScreen = vi.fn()
   let handlers: Partial<ActionHandlers> = {}
   const registerActions = (h: Partial<ActionHandlers>) => {
     handlers = h
@@ -36,14 +37,14 @@ describe('HomeScreen', () => {
   })
 
   it('renders folder list', async () => {
-    const { lastFrame } = render(React.createElement(HomeScreen, { push, pop, registerActions }))
+    const { lastFrame } = render(React.createElement(HomeScreen, { push, pop, replaceScreen, registerActions }))
     await new Promise((r) => setTimeout(r, 50))
     expect(lastFrame()).toContain('Work')
     expect(lastFrame()).toContain('Personal')
   })
 
   it('moves cursor down on onDown()', async () => {
-    const { lastFrame } = render(React.createElement(HomeScreen, { push, pop, registerActions }))
+    const { lastFrame } = render(React.createElement(HomeScreen, { push, pop, replaceScreen, registerActions }))
     await new Promise((r) => setTimeout(r, 50))
     expect(lastFrame()).toContain('❯ Work')
     handlers.onDown?.()
@@ -52,7 +53,7 @@ describe('HomeScreen', () => {
   })
 
   it('calls push with lists screen on onEnter()', async () => {
-    render(React.createElement(HomeScreen, { push, pop, registerActions }))
+    render(React.createElement(HomeScreen, { push, pop, replaceScreen, registerActions }))
     await new Promise((r) => setTimeout(r, 50))
     handlers.onEnter?.()
     await new Promise((r) => setTimeout(r, 50))

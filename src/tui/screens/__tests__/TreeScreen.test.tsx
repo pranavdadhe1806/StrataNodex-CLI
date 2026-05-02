@@ -50,6 +50,7 @@ vi.mock('../../../api/client.js', () => ({
 describe('TreeScreen', () => {
   const push = vi.fn()
   const pop = vi.fn()
+  const replaceScreen = vi.fn()
   let handlers: Partial<ActionHandlers> = {}
   const registerActions = (h: Partial<ActionHandlers>) => {
     handlers = h
@@ -66,6 +67,7 @@ describe('TreeScreen', () => {
       React.createElement(TreeScreen, {
         push,
         pop,
+        replaceScreen,
         registerActions,
         listId: 'l1',
         listName: 'Tasks',
@@ -82,6 +84,7 @@ describe('TreeScreen', () => {
       React.createElement(TreeScreen, {
         push,
         pop,
+        replaceScreen,
         registerActions,
         listId: 'l1',
         listName: 'Tasks',
@@ -98,6 +101,7 @@ describe('TreeScreen', () => {
       React.createElement(TreeScreen, {
         push,
         pop,
+        replaceScreen,
         registerActions,
         listId: 'l1',
         listName: 'Tasks',
@@ -116,6 +120,7 @@ describe('TreeScreen', () => {
       React.createElement(TreeScreen, {
         push,
         pop,
+        replaceScreen,
         registerActions,
         listId: 'l1',
         listName: 'Tasks',

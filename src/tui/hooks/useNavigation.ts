@@ -18,5 +18,9 @@ export function useNavigation() {
     setStack((s) => (s.length > 1 ? s.slice(0, -1) : s))
   }, [])
 
-  return { currentScreen, stack, push, pop }
+  const replaceScreen = useCallback((name: string, params?: Record<string, string>) => {
+    setStack((prev) => [...prev.slice(0, -1), { name, params }])
+  }, [])
+
+  return { currentScreen, stack, push, pop, replaceScreen }
 }

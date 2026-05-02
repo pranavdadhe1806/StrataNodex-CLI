@@ -21,6 +21,10 @@ export function HomeScreen({ push, registerActions }: ScreenProps) {
       const parts = cmd.trim().split(/\s+/)
       const verb = parts[0]
       const arg = parts.slice(1).join(' ')
+      if (verb === '/retry') {
+        refetch()
+        return
+      }
       if (verb === '/add' && arg) {
         setStatus('Creating folder...')
         createFolder(arg)
@@ -68,12 +72,17 @@ export function HomeScreen({ push, registerActions }: ScreenProps) {
         <Text dimColor>Loading folders...</Text>
       </Box>
     )
+
   if (error)
     return (
-      <Box paddingX={2}>
-        <Text color="red">✗ {error}</Text>
+      <Box flexDirection="column" paddingX={2} paddingY={1}>
+        <Text dimColor>Server offline or unreachable</Text>
+        <Text dimColor>{error}</Text>
+        <Text> </Text>
+        <Text dimColor>Type /retry to try again · /add &lt;name&gt; to work offline</Text>
       </Box>
     )
+
   if (folders.length === 0) {
     return (
       <Box flexDirection="column" paddingX={2}>

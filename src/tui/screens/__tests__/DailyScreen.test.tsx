@@ -35,6 +35,7 @@ vi.mock('../../../api/client.js', () => {
 describe('DailyScreen', () => {
   const push = vi.fn()
   const pop = vi.fn()
+  const replaceScreen = vi.fn()
   let handlers: Partial<ActionHandlers> = {}
   const registerActions = (h: Partial<ActionHandlers>) => {
     handlers = h
@@ -47,21 +48,21 @@ describe('DailyScreen', () => {
   })
 
   it('renders today and overdue sections', async () => {
-    const { lastFrame } = render(React.createElement(DailyScreen, { push, pop, registerActions }))
+    const { lastFrame } = render(React.createElement(DailyScreen, { push, pop, replaceScreen, registerActions }))
     await new Promise((r) => setTimeout(r, 100))
     expect(lastFrame()).toContain('Today')
     expect(lastFrame()).toContain('Overdue')
   })
 
   it('renders today and overdue nodes', async () => {
-    const { lastFrame } = render(React.createElement(DailyScreen, { push, pop, registerActions }))
+    const { lastFrame } = render(React.createElement(DailyScreen, { push, pop, replaceScreen, registerActions }))
     await new Promise((r) => setTimeout(r, 100))
     expect(lastFrame()).toContain('Fix bug')
     expect(lastFrame()).toContain('Old task')
   })
 
   it('calls pop on onBack()', async () => {
-    render(React.createElement(DailyScreen, { push, pop, registerActions }))
+    render(React.createElement(DailyScreen, { push, pop, replaceScreen, registerActions }))
     await new Promise((r) => setTimeout(r, 100))
     handlers.onBack?.()
     expect(pop).toHaveBeenCalled()
