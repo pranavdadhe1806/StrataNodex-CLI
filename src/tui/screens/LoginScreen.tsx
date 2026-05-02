@@ -8,7 +8,7 @@ import { getToken } from '../../utils/auth.js'
 import { getConfig } from '../../config.js'
 import type { ScreenProps } from '../types.js'
 
-const WEB_URL = process.env['STRATANODEX_WEB_URL'] ?? 'https://stratanodex.com/login'
+const WEB_URL = process.env['STRATANODEX_WEB_URL'] ?? 'https://stratanodex-landing-page.vercel.app/#auth'
 
 function openBrowser(url: string): void {
   const cmd =
