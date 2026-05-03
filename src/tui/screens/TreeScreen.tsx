@@ -5,6 +5,7 @@ import { useTree } from '../hooks/useTree.js'
 import { NodeRow } from '../components/NodeRow.js'
 import { Breadcrumb } from '../components/Breadcrumb.js'
 import { Keybindings } from '../components/Keybindings.js'
+import { Spinner } from '../components/Spinner.js'
 import { createRootNode, updateNode } from '../../api/client.js'
 import type { ScreenProps } from '../types.js'
 
@@ -101,7 +102,7 @@ export function TreeScreen({
   if (loading)
     return (
       <Box paddingX={2}>
-        <Text dimColor>Loading tree...</Text>
+        <Spinner label="Loading tree..." />
       </Box>
     )
   if (error)

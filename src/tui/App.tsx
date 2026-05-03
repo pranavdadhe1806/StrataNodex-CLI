@@ -5,6 +5,7 @@ import { useAuth } from './hooks/useAuth.js'
 import { useKeymap } from './hooks/useKeymap.js'
 import { TopBar } from './components/TopBar.js'
 import { CommandInput } from './components/CommandInput.js'
+import { ErrorBoundary } from './components/ErrorBoundary.js'
 import { WelcomeScreen } from './screens/WelcomeScreen.js'
 import { LoginScreen } from './screens/LoginScreen.js'
 import { HomeScreen } from './screens/HomeScreen.js'
@@ -172,7 +173,7 @@ export function App() {
         overflow="hidden"
         flexDirection="column"
       >
-        {renderScreen()}
+        <ErrorBoundary>{renderScreen()}</ErrorBoundary>
         {cmdResult && (
           <Box paddingX={2} marginTop={1}>
             <Text color={cmdResult.startsWith('✓') ? '#00c896' : 'red'} dimColor>

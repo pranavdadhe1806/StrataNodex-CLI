@@ -2,6 +2,7 @@
 import React, { useEffect, useState } from 'react'
 import { Box, Text } from 'ink'
 import { getDailyScore, getStreak, getScores } from '../../api/client.js'
+import { Spinner } from '../components/Spinner.js'
 import type { DailyScore } from '../../types/index.js'
 import type { ScreenProps } from '../types.js'
 
@@ -84,7 +85,7 @@ export function DashboardScreen({ pop, registerActions }: ScreenProps) {
   if (loading) {
     return (
       <Box paddingX={2}>
-        <Text dimColor>Loading dashboard...</Text>
+        <Spinner label="Loading dashboard..." />
       </Box>
     )
   }

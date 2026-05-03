@@ -4,6 +4,7 @@ import { Box, Text } from 'ink'
 import { getDailyToday, getDailyOverdue, updateNode } from '../../api/client.js'
 import { NodeRow } from '../components/NodeRow.js'
 import { Keybindings } from '../components/Keybindings.js'
+import { Spinner } from '../components/Spinner.js'
 import type { Node } from '../../types/index.js'
 import type { ScreenProps } from '../types.js'
 
@@ -74,7 +75,7 @@ export function DailyScreen({ pop, registerActions }: ScreenProps) {
   if (loading)
     return (
       <Box paddingX={2}>
-        <Text dimColor>Loading daily tasks...</Text>
+        <Spinner label="Loading daily tasks..." />
       </Box>
     )
   if (error)

@@ -5,6 +5,7 @@ import { useLists } from '../hooks/useLists.js'
 import { ListItem } from '../components/ListItem.js'
 import { Breadcrumb } from '../components/Breadcrumb.js'
 import { Keybindings } from '../components/Keybindings.js'
+import { Spinner } from '../components/Spinner.js'
 import { createList, deleteList } from '../../api/client.js'
 import type { ScreenProps } from '../types.js'
 
@@ -71,7 +72,7 @@ export function ListsScreen({ push, pop, registerActions, folderId, folderName }
   if (loading)
     return (
       <Box paddingX={2}>
-        <Text dimColor>Loading lists...</Text>
+        <Spinner label="Loading lists..." />
       </Box>
     )
   if (error)

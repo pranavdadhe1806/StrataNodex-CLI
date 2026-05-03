@@ -5,6 +5,7 @@ import { useApp } from 'ink'
 import { useFolders } from '../hooks/useFolders.js'
 import { FolderItem } from '../components/FolderItem.js'
 import { Keybindings } from '../components/Keybindings.js'
+import { Spinner } from '../components/Spinner.js'
 import { createFolder, deleteFolder } from '../../api/client.js'
 import type { ScreenProps } from '../types.js'
 
@@ -69,7 +70,7 @@ export function HomeScreen({ push, registerActions }: ScreenProps) {
   if (loading)
     return (
       <Box paddingX={2}>
-        <Text dimColor>Loading folders...</Text>
+        <Spinner label="Loading folders..." />
       </Box>
     )
 
