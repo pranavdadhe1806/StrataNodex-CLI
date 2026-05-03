@@ -18,8 +18,12 @@
     "lint": "eslint src/",
     "format": "prettier --write src/",
     "typecheck": "tsc -p tsconfig.json --noEmit",
-    "prepare": "husky install"
+    "prepare": "husky install",
+    "prepublishOnly": "npm run lint && npm run test -- --run && npm run build"
   },
+  "files": [
+    "dist"
+  ],
   "keywords": [
     "cli",
     "productivity",
