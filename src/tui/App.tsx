@@ -3,27 +3,32 @@ import { Box, Text, useApp, useStdout } from 'ink'
 import { useNavigation } from './hooks/useNavigation.js'
 import { useAuth } from './hooks/useAuth.js'
 import { useKeymap } from './hooks/useKeymap.js'
-import { useCommandInput } from './hooks/useCommandInput.js'
 import { TopBar } from './components/TopBar.js'
-import { BottomBar } from './components/BottomBar.js'
+import { CommandInput } from './components/CommandInput.js'
 import { WelcomeScreen } from './screens/WelcomeScreen.js'
 import { LoginScreen } from './screens/LoginScreen.js'
 import { HomeScreen } from './screens/HomeScreen.js'
 import { ListsScreen } from './screens/ListsScreen.js'
 import { TreeScreen } from './screens/TreeScreen.js'
 import { DailyScreen } from './screens/DailyScreen.js'
+import { DashboardScreen } from './screens/DashboardScreen.js'
+import { executeCommand } from '../commands/executor.js'
 import type { ActionHandlers } from './types.js'
+import type { Screen } from '../commands/registry.js'
+import type { Node } from '../types/index.js'
 
 const TOP_HEIGHT = 5
 const BOTTOM_HEIGHT = 3
 
-const SCREEN_HINTS: Record<string, string[]> = {
-  welcome: [],
-  login: ['<email>', '<password>', '<2fa-code>', '/exit'],
-  home: ['/add', '/exit', '/help', '/daily'],
-  lists: ['/add', '/delete', '/back', '/exit', '/help'],
-  tree: ['/add', '/done', '/delete', '/daily', '/exit', '/help'],
-  daily: ['/done', '/list', '/exit', '/help'],
+/** Map TUI screen names to the registry Screen type for autocomplete. */
+const TUI_TO_REGISTRY: Record<string, Screen> = {
+  home: 'folders',
+  lists: 'lists',
+  tree: 'nodes',
+  daily: 'nodes',
+  dashboard: 'nodes',
+  welcome: 'global',
+  login: 'global',
 }
 
 export function App() {
@@ -36,6 +41,9 @@ export function App() {
   const { isLoggedIn } = useAuth()
   const [mode, setMode] = useState<'nav' | 'edit'>('nav')
   const activeHandlers = useRef<Partial<ActionHandlers>>({})
+  const [cmdResult, setCmdResult] = useState<string | null>(null)
+  /** Nodes available in the current screen (populated by TreeScreen/DailyScreen). */
+  const [screenNodes, setScreenNodes] = useState<Node[]>([])
 
   const registerActions = useCallback((handlers: Partial<ActionHandlers>) => {
     activeHandlers.current = handlers
@@ -43,24 +51,37 @@ export function App() {
 
   useEffect(() => {
     activeHandlers.current = {}
+    setScreenNodes([])
+    setCmdResult(null)
   }, [currentScreen.name])
 
-  const onScreenCommand = useCallback((raw: string) => {
-    activeHandlers.current.onCommand?.(raw)
-  }, [])
-
-  const { inputValue, setInputValue, handleSubmit } = useCommandInput({
-    onExit: () => exit(),
-    onNavigate: (screen, params) => push(screen, params),
-    onScreenCommand,
-  })
-
-  const onInputSubmit = useCallback(
-    (val: string) => {
-      handleSubmit(val)
+  const handleCommandSubmit = useCallback(
+    async (raw: string) => {
       setMode('nav')
+      // Let the active screen handle it first (for nav commands like /back)
+      if (activeHandlers.current.onCommand) {
+        activeHandlers.current.onCommand(raw)
+      }
+
+      const registryScreen: Screen = TUI_TO_REGISTRY[currentScreen.name] ?? 'global'
+      const p = currentScreen.params ?? {}
+
+      const result = await executeCommand(raw, registryScreen, {
+        listId: p['listId'],
+        folderId: p['folderId'],
+        currentNodes: screenNodes,
+        navigate: (screen, params) => {
+          if (screen === '__pop__') pop()
+          else push(screen, params)
+        },
+        exit,
+        refetch: () => activeHandlers.current.onCommand?.('/refresh'),
+      })
+
+      if (result.message) setCmdResult(result.message)
+      setTimeout(() => setCmdResult(null), 3000)
     },
-    [handleSubmit]
+    [currentScreen, screenNodes, push, pop, exit]
   )
 
   useKeymap(mode, {
@@ -72,14 +93,12 @@ export function App() {
     onBack: () => {
       if (mode === 'edit') {
         setMode('nav')
-        setInputValue('')
         return
       }
       activeHandlers.current.onBack?.()
     },
     onEsc: () => {
       setMode('nav')
-      setInputValue('')
     },
     onQuit: () => {
       if (mode === 'nav') {
@@ -91,7 +110,15 @@ export function App() {
   })
 
   const middleHeight = Math.max(3, terminalHeight - TOP_HEIGHT - BOTTOM_HEIGHT)
-  const screenProps = { push, pop, replaceScreen, registerActions, height: middleHeight, width: terminalWidth }
+  const screenProps = {
+    push,
+    pop,
+    replaceScreen,
+    registerActions,
+    height: middleHeight,
+    width: terminalWidth,
+  }
+  const registryScreen: Screen = TUI_TO_REGISTRY[currentScreen.name] ?? 'global'
 
   function renderScreen() {
     const name = currentScreen.name
@@ -118,20 +145,20 @@ export function App() {
             listId={p['listId'] ?? ''}
             listName={p['listName']}
             folderName={p['folderName']}
+            onNodesLoaded={setScreenNodes}
           />
         )
       case 'daily':
         return <DailyScreen {...screenProps} />
+      case 'dashboard':
+        return <DashboardScreen {...screenProps} />
       default:
         return <Text color="red">Unknown screen: {name}</Text>
     }
   }
 
-  const hints = SCREEN_HINTS[currentScreen.name] ?? []
-
   return (
     <Box flexDirection="column" width={terminalWidth} height={terminalHeight}>
-
       {/* TOP — fixed, never scrolls */}
       <Box height={TOP_HEIGHT} flexShrink={0}>
         <TopBar width={terminalWidth} hasToken={isLoggedIn} />
@@ -146,22 +173,24 @@ export function App() {
         flexDirection="column"
       >
         {renderScreen()}
+        {cmdResult && (
+          <Box paddingX={2} marginTop={1}>
+            <Text color={cmdResult.startsWith('✓') ? '#00c896' : 'red'} dimColor>
+              {cmdResult}
+            </Text>
+          </Box>
+        )}
       </Box>
 
-      {/* BOTTOM — fixed, always typeable */}
+      {/* BOTTOM — fixed CommandInput with autocomplete overlay */}
       <Box height={BOTTOM_HEIGHT} flexShrink={0}>
-        <BottomBar
-          value={inputValue}
-          onChange={(v) => {
-            setInputValue(v)
-            if (v.length > 0) setMode('edit')
-          }}
-          onSubmit={onInputSubmit}
+        <CommandInput
+          screen={registryScreen}
+          currentNodes={screenNodes}
           width={terminalWidth}
-          hints={hints}
+          onSubmit={handleCommandSubmit}
         />
       </Box>
-
     </Box>
   )
 }

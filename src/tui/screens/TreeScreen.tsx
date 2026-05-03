@@ -14,6 +14,8 @@ interface Props extends ScreenProps {
   listId: string
   listName?: string
   folderName?: string
+  /** Called with the current flat node list so App can pass them to CommandInput. */
+  onNodesLoaded?: (nodes: ReturnType<typeof useTree>['nodes']) => void
 }
 
 function getDepth(nodes: ReturnType<typeof useTree>['nodes'], nodeId: string, depth = 0): number {
@@ -25,11 +27,23 @@ function getDepth(nodes: ReturnType<typeof useTree>['nodes'], nodeId: string, de
   return -1
 }
 
-export function TreeScreen({ pop, registerActions, listId, listName, folderName }: Props) {
+export function TreeScreen({
+  pop,
+  registerActions,
+  listId,
+  listName,
+  folderName,
+  onNodesLoaded,
+}: Props) {
   const { nodes, flatNodes, expandedIds, toggleExpand, numberMap, loading, error, refetch } =
     useTree(listId)
   const [cursor, setCursor] = useState(0)
   const [status, setStatus] = useState<string | null>(null)
+
+  // Bubble flat nodes up so CommandInput can resolve node refs for autocomplete
+  useEffect(() => {
+    if (onNodesLoaded) onNodesLoaded(nodes)
+  }, [nodes, onNodesLoaded])
 
   const handleCommand = useCallback(
     async (cmd: string) => {
