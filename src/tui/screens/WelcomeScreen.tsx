@@ -53,7 +53,6 @@ export function WelcomeScreen({ replaceScreen, height, width }: ScreenProps) {
         const t = setTimeout(() => transition(false), 1500)
         return () => clearTimeout(t)
       })
-  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
   return (

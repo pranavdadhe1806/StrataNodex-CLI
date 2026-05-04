@@ -167,3 +167,15 @@ export const getScores = (limit?: number, listId?: string): Promise<DailyScore[]
 
 export const getStreak = (): Promise<{ streak: number }> =>
   http.get<{ streak: number }>('/api/scores/streak').then((r) => r.data)
+
+// ── CLI Session (browser-based auth handshake) ────────────────────────────────
+
+export const createCliSession = (): Promise<{ code: string }> =>
+  http.post<{ code: string }>('/api/cli-session/create').then((r) => r.data)
+
+export const pollCliSession = (
+  code: string
+): Promise<{ status: 'pending' | 'complete'; token?: string }> =>
+  http
+    .get<{ status: 'pending' | 'complete'; token?: string }>(`/api/cli-session/poll/${code}`)
+    .then((r) => r.data)
