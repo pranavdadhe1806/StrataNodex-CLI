@@ -78,9 +78,14 @@ export function LoginScreen({ replaceScreen, registerActions }: ScreenProps) {
           setState('error')
         }
       }, POLL_INTERVAL_MS)
-    } catch {
+    } catch (e: unknown) {
       if (attemptRef.current !== attempt) return
-      setErrorMsg('Failed to reach backend. Is it reachable? Press R to retry.')
+      const status = e instanceof ApiError ? e.statusCode : 0
+      if (status === 429) {
+        setErrorMsg('Too many retries. Wait a moment then press R.')
+      } else {
+        setErrorMsg('Cannot reach backend. Check your connection and press R.')
+      }
       setState('error')
     }
   }, [stopPolling, replaceScreen])
