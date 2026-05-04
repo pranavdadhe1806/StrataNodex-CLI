@@ -169,13 +169,20 @@ export const getStreak = (): Promise<{ streak: number }> =>
   http.get<{ streak: number }>('/api/scores/streak').then((r) => r.data)
 
 // ── CLI Session (browser-based auth handshake) ────────────────────────────────
+// Backend mounts these at /api/auth/cli-session (see app.ts)
 
 export const createCliSession = (): Promise<{ code: string }> =>
-  http.post<{ code: string }>('/api/cli-session/create').then((r) => r.data)
+  http
+    .post<{ code: string; url: string; expiresAt: string }>('/api/auth/cli-session')
+    .then((r) => ({
+      code: r.data.code,
+    }))
 
 export const pollCliSession = (
   code: string
 ): Promise<{ status: 'pending' | 'complete'; token?: string }> =>
-  http
-    .get<{ status: 'pending' | 'complete'; token?: string }>(`/api/cli-session/poll/${code}`)
-    .then((r) => r.data)
+  http.get<{ pending?: true; token?: string }>(`/api/auth/cli-session/${code}`).then((r) => {
+    // Backend returns { pending: true } or { token: string }
+    if (r.data.token) return { status: 'complete' as const, token: r.data.token }
+    return { status: 'pending' as const }
+  })
