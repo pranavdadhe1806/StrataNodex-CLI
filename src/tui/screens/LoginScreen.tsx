@@ -8,7 +8,8 @@ import { ApiError } from '../../api/ApiError.js'
 import chalk from 'chalk'
 import type { ScreenProps } from '../types.js'
 
-const AUTH_URL_BASE = 'https://stratanodex-landing-page.vercel.app/#auth'
+const AUTH_URL_BASE =
+  process.env['STRATANODEX_AUTH_URL'] ?? 'https://stratanodex-landing-page.vercel.app'
 const POLL_INTERVAL_MS = 2000
 
 type LoginState = 'creating' | 'waiting' | 'success' | 'error'
@@ -41,7 +42,8 @@ export function LoginScreen({ replaceScreen, registerActions }: ScreenProps) {
       if (attemptRef.current !== attempt) return // stale attempt
 
       // 2. Open browser to auth page — hash-routed, ?session= is inside the hash
-      await open(`${AUTH_URL_BASE}?session=${code}`)
+      const separator = AUTH_URL_BASE.includes('?') ? '&' : '?'
+      await open(`${AUTH_URL_BASE}${separator}session=${code}#auth`)
 
       setState('waiting')
 

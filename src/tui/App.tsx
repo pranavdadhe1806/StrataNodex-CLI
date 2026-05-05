@@ -19,7 +19,7 @@ import type { Screen } from '../commands/registry.js'
 import type { Node } from '../types/index.js'
 
 const TOP_HEIGHT = 5
-const BOTTOM_HEIGHT = 3
+const BOTTOM_BASE_ROWS = 3 // separator + prompt + hint
 
 /** Map TUI screen names to the registry Screen type for autocomplete. */
 const TUI_TO_REGISTRY: Record<string, Screen> = {
@@ -110,7 +110,7 @@ export function App() {
     },
   })
 
-  const middleHeight = Math.max(3, terminalHeight - TOP_HEIGHT - BOTTOM_HEIGHT)
+  const middleHeight = Math.max(3, terminalHeight - TOP_HEIGHT - BOTTOM_BASE_ROWS)
   const screenProps = {
     push,
     pop,
@@ -165,14 +165,8 @@ export function App() {
         <TopBar width={terminalWidth} hasToken={isLoggedIn} />
       </Box>
 
-      {/* MIDDLE — scrollable, changes per screen */}
-      <Box
-        height={middleHeight}
-        flexShrink={0}
-        flexGrow={0}
-        overflow="hidden"
-        flexDirection="column"
-      >
+      {/* MIDDLE — screen content, shrinks when autocomplete overlay opens */}
+      <Box flexGrow={1} flexShrink={1} overflow="hidden" flexDirection="column">
         <ErrorBoundary>{renderScreen()}</ErrorBoundary>
         {cmdResult && (
           <Box paddingX={2} marginTop={1}>
@@ -183,8 +177,8 @@ export function App() {
         )}
       </Box>
 
-      {/* BOTTOM — fixed CommandInput with autocomplete overlay */}
-      <Box height={BOTTOM_HEIGHT} flexShrink={0}>
+      {/* BOTTOM — autocomplete overlay + input (never pushed off-screen) */}
+      <Box flexShrink={0} flexDirection="column">
         <CommandInput
           screen={registryScreen}
           currentNodes={screenNodes}

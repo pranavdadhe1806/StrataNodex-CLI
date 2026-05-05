@@ -109,18 +109,22 @@ export const CommandInput: React.FC<Props> = ({ screen, currentNodes = [], width
       {/* Prompt + input */}
       <Box width={width} paddingX={2}>
         <Text>{chalk.hex('#00bfff')('> ')}</Text>
-        <TextInput
-          value={inputValue}
-          onChange={handleChange}
-          onSubmit={handleSubmit}
-          placeholder="type / for commands"
-        />
+        <Box>
+          <Text color="#e6edf3">
+            <TextInput
+              value={inputValue}
+              onChange={handleChange}
+              onSubmit={handleSubmit}
+              placeholder="type / for commands"
+            />
+          </Text>
+        </Box>
       </Box>
 
       {/* Hint row */}
       <Box width={width} paddingX={2}>
         <Text>
-          {chalk.hex('#003344')(
+          {chalk.hex('#3a6a7a')(
             '/ for commands  ↑↓ navigate  TAB complete  ESC close  Enter execute'
           )}
         </Text>
