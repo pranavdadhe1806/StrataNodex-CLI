@@ -105,6 +105,7 @@ export function DailyScreen({ pop, registerActions }: ScreenProps) {
             depth={0}
             isSelected={idx - 1 === cursor}
             isLast={true}
+            isLastRoot={true}
             parentLines={[]}
           />
         ))
@@ -125,6 +126,7 @@ export function DailyScreen({ pop, registerActions }: ScreenProps) {
             depth={0}
             isSelected={idx - 1 === cursor}
             isLast={true}
+            isLastRoot={true}
             parentLines={[]}
           />
         ))

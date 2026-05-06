@@ -9,6 +9,7 @@ interface Props {
   depth: number
   isSelected: boolean
   isLast: boolean
+  isLastRoot: boolean
   /** Which ancestor levels should draw a continuing vertical line */
   parentLines: boolean[]
 }
@@ -19,31 +20,49 @@ const STATUS_ICON: Record<string, { icon: string; color: string }> = {
   DONE: { icon: '●', color: '#00c896' },
 }
 
-export function NodeRow({ node, number, depth, isSelected, isLast, parentLines }: Props) {
+export function NodeRow({ node, depth, isSelected, isLast, isLastRoot, parentLines }: Props) {
   const title = node.title.length > 50 ? node.title.slice(0, 47) + '...' : node.title
   const statusInfo = STATUS_ICON[node.status] ?? STATUS_ICON['TODO']!
 
+  // Build the vertical spacer line ABOVE this node (between siblings)
+  let spacerLine: string | null = null
+  if (depth === 0) {
+    // Root nodes: no spacer above the very first root
+    // (spacer is rendered below each root instead)
+    spacerLine = null
+  } else {
+    // Child nodes: vertical line spacer from parent
+    const parts: string[] = []
+    for (let i = 0; i < depth - 1; i++) {
+      parts.push(parentLines[i] ? '│     ' : '      ')
+    }
+    parts.push('│')
+    spacerLine = parts.join('')
+  }
+
+  // Build the vertical spacer line BELOW root nodes
+  let rootSpacer: string | null = null
+  if (depth === 0 && !isLastRoot) {
+    rootSpacer = '  │'
+  }
+
   return (
     <Box flexDirection="column">
-      {/* Vertical connector line between siblings */}
-      {depth > 0 && (
+      {/* Vertical spacer above child nodes */}
+      {spacerLine && (
         <Box>
-          <Text color="#3a6a7a">
-            {(() => {
-              const parts: string[] = []
-              for (let i = 0; i < depth - 1; i++) {
-                parts.push(parentLines[i] ? '│     ' : '      ')
-              }
-              parts.push('│')
-              return parts.join('')
-            })()}
-          </Text>
+          <Text color="#3a6a7a">{spacerLine}</Text>
         </Box>
       )}
 
-      {/* Node row — plain text, no borders */}
+      {/* The node itself */}
       <Box>
-        <TreeConnector depth={depth} parentLines={parentLines} isLast={isLast} />
+        {depth === 0 ? (
+          /* Root node: indented with spaces */
+          <Text color="#3a6a7a">{'  '}</Text>
+        ) : (
+          <TreeConnector depth={depth} parentLines={parentLines} isLast={isLast} />
+        )}
         <Text color={statusInfo.color}>{statusInfo.icon}</Text>
         <Text> </Text>
         {isSelected ? (
@@ -54,6 +73,13 @@ export function NodeRow({ node, number, depth, isSelected, isLast, parentLines }
           <Text color="#c9d1d9">{title}</Text>
         )}
       </Box>
+
+      {/* Vertical spacer below root nodes */}
+      {rootSpacer && (
+        <Box>
+          <Text color="#3a6a7a">{rootSpacer}</Text>
+        </Box>
+      )}
     </Box>
   )
 }

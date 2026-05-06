@@ -4,6 +4,21 @@
 import { COMMAND_REGISTRY, getCommandsForScreen } from './registry.js'
 import type { Screen, CommandDefinition } from './registry.js'
 import type { Node } from '../types/index.js'
+import { assignNumbers } from '../utils/numbering.js'
+
+/** DFS flatten for suggestions — walks the full nested tree. */
+function flattenForSuggestions(nodes: Node[]): Node[] {
+  const result: Node[] = []
+  function dfs(children: Node[]): void {
+    const sorted = [...children].sort((a, b) => a.position - b.position)
+    for (const node of sorted) {
+      result.push(node)
+      if ((node.children ?? []).length > 0) dfs(node.children)
+    }
+  }
+  dfs(nodes)
+  return result
+}
 
 export type Stage = 'command' | 'node-ref' | 'property' | 'value-hint'
 
@@ -100,9 +115,16 @@ export function resolve(input: string, screen: Screen, currentNodes: Node[]): Re
     if (propertyStart === -1) {
       // User is still typing the node ref
       const query = nodeRefInput.toLowerCase()
-      const matchedNodes = currentNodes.filter(
-        (n) => n.title.toLowerCase().includes(query) || String(n.id).startsWith(query)
-      )
+
+      // Build hierarchical number map and flatten the tree for display
+      const numberMap = assignNumbers(currentNodes)
+      const flatNodes = flattenForSuggestions(currentNodes)
+
+      const matchedNodes = flatNodes.filter((n) => {
+        if (!nodeRefInput) return true
+        const num = numberMap.get(n.id) ?? ''
+        return n.title.toLowerCase().includes(query) || num.startsWith(query)
+      })
 
       if (nodeRefInput.length > 0 && matchedNodes.length === 0) {
         return {
@@ -115,16 +137,14 @@ export function resolve(input: string, screen: Screen, currentNodes: Node[]): Re
       return {
         stage: 'node-ref',
         filledTokens: [matchedCmd.command],
-        suggestions: currentNodes
-          .filter((n) => {
-            if (!nodeRefInput) return true
-            return n.title.toLowerCase().includes(query)
-          })
-          .map((n, idx) => ({
-            label: `${idx + 1}. ${n.title}`,
-            fillValue: String(idx + 1) + ' ',
+        suggestions: matchedNodes.map((n) => {
+          const num = numberMap.get(n.id) ?? '?'
+          return {
+            label: `${num}. ${n.title}`,
+            fillValue: num + ' ',
             hint: n.status,
-          })),
+          }
+        }),
       }
     }
 

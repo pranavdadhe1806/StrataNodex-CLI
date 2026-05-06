@@ -18,6 +18,8 @@ interface Props extends ScreenProps {
   folderName?: string
   /** Called with the current flat node list so App can pass them to CommandInput. */
   onNodesLoaded?: (nodes: ReturnType<typeof useTree>['nodes']) => void
+  /** Called when the cursor moves to a different node. */
+  onSelectedNodeChanged?: (nodeId: string | undefined) => void
 }
 
 // ── Tree metadata helpers ─────────────────────────────────────────────────────
@@ -72,6 +74,7 @@ export function TreeScreen({
   listName,
   folderName,
   onNodesLoaded,
+  onSelectedNodeChanged,
 }: Props) {
   const { nodes, flatNodes, expandedIds, toggleExpand, numberMap, loading, error, refetch } =
     useTree(listId)
@@ -85,6 +88,12 @@ export function TreeScreen({
   useEffect(() => {
     if (onNodesLoaded) onNodesLoaded(nodes)
   }, [nodes, onNodesLoaded])
+
+  // Report selected node to App
+  useEffect(() => {
+    const entry = displayEntries[cursor]
+    onSelectedNodeChanged?.(entry?.node.id)
+  }, [cursor, displayEntries, onSelectedNodeChanged])
 
   const handleCommand = useCallback(
     async (cmd: string) => {
@@ -234,6 +243,13 @@ export function TreeScreen({
       <Box flexDirection="column" marginTop={1}>
         {displayEntries.map((entry, i) => {
           const num = numberMap.get(entry.node.id) ?? ''
+          // For root nodes: check if this is the last root-level entry
+          let isLastRoot = false
+          if (entry.depth === 0) {
+            // Look for the next root node after this one
+            const nextRootIdx = displayEntries.findIndex((e, j) => j > i && e.depth === 0)
+            isLastRoot = nextRootIdx === -1
+          }
           return (
             <NodeRow
               key={entry.node.id}
@@ -242,6 +258,7 @@ export function TreeScreen({
               depth={entry.depth}
               isSelected={i === cursor}
               isLast={entry.isLast}
+              isLastRoot={isLastRoot}
               parentLines={entry.parentLines}
             />
           )

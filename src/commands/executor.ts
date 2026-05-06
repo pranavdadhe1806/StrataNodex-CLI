@@ -8,6 +8,7 @@ import {
   updateList,
   deleteList,
   createRootNode,
+  createChildNode,
   updateNode,
   deleteNode,
   moveNode,
@@ -20,7 +21,7 @@ import {
   getLists,
   getNodes,
 } from '../api/client.js'
-import { flattenTree } from '../utils/numbering.js'
+import { flattenTree, assignNumbers } from '../utils/numbering.js'
 import { clearToken } from '../utils/auth.js'
 import type { Screen } from './registry.js'
 
@@ -31,6 +32,8 @@ export interface ExecuteContext {
   folderId?: string
   /** Current nodes (pre-fetched by the screen hook). */
   currentNodes?: Awaited<ReturnType<typeof getNodes>>
+  /** ID of the currently selected (cursor) node — used by /add sub-node. */
+  selectedNodeId?: string
   /** Navigation function. */
   navigate?: (screen: string, params?: Record<string, string>) => void
   /** Exit the TUI. */
@@ -44,14 +47,21 @@ export interface ExecuteResult {
   message: string
 }
 
-/** Resolve index-or-title to a node ID from the flat node list. */
+/** Resolve index-or-title to a node ID from the flat node list.
+ *  Index can be hierarchical: "1", "1.2", "1.2.1" etc. */
 function resolveNode(
   ref: string,
   nodes: Awaited<ReturnType<typeof getNodes>>
 ): (typeof nodes)[number] | undefined {
   const flat = flattenTree(nodes)
-  const num = parseInt(ref, 10)
-  if (!isNaN(num)) return flat[num - 1]
+  const numberMap = assignNumbers(nodes)
+
+  // Try matching by hierarchical number (e.g. "1", "1.2", "1.2.1")
+  for (const node of flat) {
+    if (numberMap.get(node.id) === ref) return node
+  }
+
+  // Fall back to title match
   return flat.find((n) => n.title.toLowerCase() === ref.toLowerCase())
 }
 
@@ -223,6 +233,55 @@ export async function executeCommand(
       const n = await createRootNode(listId, { title })
       ctx.refetch?.()
       return { ok: true, message: `✓ Added "${n.title}"` }
+    } catch (e: unknown) {
+      return { ok: false, message: (e as Error).message }
+    }
+  }
+
+  if (trimmed.startsWith('/add sub-node ')) {
+    const rest = trimmed.slice('/add sub-node '.length).trim()
+    if (!rest) return { ok: false, message: 'Sub-node title required.' }
+    if (!listId) return { ok: false, message: 'Not inside a list.' }
+
+    // Check if first word is a numeric index like "1", "1.2", "1.2.1"
+    const parts = rest.split(/\s+/)
+    const indexPattern = /^\d+(\.\d+)*$/
+    let parentId: string | undefined
+    let title: string
+
+    if (indexPattern.test(parts[0]!)) {
+      // /add sub-node <index> <title>
+      const idx = parts[0]!
+      title = parts.slice(1).join(' ')
+      if (!title) return { ok: false, message: 'Sub-node title required after index.' }
+      const flat = flattenTree(nodes)
+      const numberMap = new Map<string, string>()
+      function buildNumbers(children: typeof nodes, prefix: string): void {
+        const sorted = [...children].sort((a, b) => a.position - b.position)
+        sorted.forEach((node, i) => {
+          const num = prefix ? `${prefix}.${i + 1}` : `${i + 1}`
+          numberMap.set(num, node.id)
+          if ((node.children ?? []).length > 0) buildNumbers(node.children, num)
+        })
+      }
+      buildNumbers(nodes, '')
+      parentId = numberMap.get(idx)
+      if (!parentId) return { ok: false, message: `Node "${idx}" not found.` }
+    } else {
+      // /add sub-node <title> — use currently selected node
+      title = rest
+      parentId = ctx.selectedNodeId
+      if (!parentId)
+        return {
+          ok: false,
+          message: 'No node selected. Navigate to a node first, or specify an index.',
+        }
+    }
+
+    try {
+      const n = await createChildNode(parentId, { title })
+      ctx.refetch?.()
+      return { ok: true, message: `✓ Added sub-node "${n.title}"` }
     } catch (e: unknown) {
       return { ok: false, message: (e as Error).message }
     }

@@ -45,6 +45,8 @@ export function App() {
   const [cmdResult, setCmdResult] = useState<string | null>(null)
   /** Nodes available in the current screen (populated by TreeScreen/DailyScreen). */
   const [screenNodes, setScreenNodes] = useState<Node[]>([])
+  /** Currently selected node ID (cursor position in TreeScreen). */
+  const [selectedNodeId, setSelectedNodeId] = useState<string | undefined>(undefined)
 
   const registerActions = useCallback((handlers: Partial<ActionHandlers>) => {
     activeHandlers.current = handlers
@@ -62,10 +64,6 @@ export function App() {
   const handleCommandSubmit = useCallback(
     async (raw: string) => {
       setMode('nav')
-      // Let the active screen handle it first (for nav commands like /back)
-      if (activeHandlers.current.onCommand) {
-        activeHandlers.current.onCommand(raw)
-      }
 
       const registryScreen: Screen = TUI_TO_REGISTRY[currentScreen.name] ?? 'global'
       const p = currentScreen.params ?? {}
@@ -74,6 +72,7 @@ export function App() {
         listId: p['listId'],
         folderId: p['folderId'],
         currentNodes: screenNodes,
+        selectedNodeId,
         navigate: (screen, params) => {
           if (screen === '__pop__') pop()
           else push(screen, params)
@@ -85,7 +84,7 @@ export function App() {
       if (result.message) setCmdResult(result.message)
       setTimeout(() => setCmdResult(null), 3000)
     },
-    [currentScreen, screenNodes, push, pop, exit]
+    [currentScreen, screenNodes, selectedNodeId, push, pop, exit]
   )
 
   useKeymap(mode, overlayOpen, {
@@ -150,6 +149,7 @@ export function App() {
             listName={p['listName']}
             folderName={p['folderName']}
             onNodesLoaded={setScreenNodes}
+            onSelectedNodeChanged={setSelectedNodeId}
           />
         )
       case 'daily':
