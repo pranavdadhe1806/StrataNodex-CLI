@@ -121,7 +121,13 @@ export const COMMAND_REGISTRY: CommandDefinition[] = [
     command: '/add node',
     args: [{ name: 'node-title', type: 'text', placeholder: 'node title' }],
     screens: ['nodes'],
-    description: 'Create a new node',
+    description: 'Create a new root node',
+  },
+  {
+    command: '/add sub-node',
+    args: [{ name: 'node-title', type: 'text', placeholder: '[parent-index] sub-node title' }],
+    screens: ['nodes'],
+    description: 'Add sub-node under selected node (or specify parent index)',
   },
   {
     command: '/done',

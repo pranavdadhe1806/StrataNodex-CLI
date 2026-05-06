@@ -84,27 +84,41 @@ export function HomeScreen({ push, registerActions }: ScreenProps) {
       </Box>
     )
 
-  if (folders.length === 0) {
-    return (
-      <Box flexDirection="column" paddingX={2}>
-        <Text dimColor>No folders yet. Type /add &lt;name&gt; to create one.</Text>
-      </Box>
-    )
-  }
-
   return (
-    <Box flexDirection="column" paddingX={2}>
+    <Box flexDirection="column" paddingX={2} paddingY={1}>
+      {/* Title — always visible */}
       <Box marginBottom={1}>
-        <Text bold>📁 Folders</Text>
+        <Text bold color="#00bfff">
+          📁 Your Folders
+        </Text>
       </Box>
-      {folders.map((folder, i) => (
-        <FolderItem key={folder.id} folder={folder} isSelected={i === cursor} />
-      ))}
+
+      {/* Empty state or folder list */}
+      {folders.length === 0 ? (
+        <Box>
+          <Text color="#8b949e" dimColor>
+            No folders yet. Type{' '}
+          </Text>
+          <Text color="#00bfff">/new folder {'<name>'}</Text>
+          <Text color="#8b949e" dimColor>
+            {' '}
+            to create one.
+          </Text>
+        </Box>
+      ) : (
+        folders.map((folder, i) => (
+          <FolderItem key={folder.id} folder={folder} isSelected={i === cursor} />
+        ))
+      )}
+
+      {/* Status message (create/delete feedback) */}
       {status && (
         <Box marginTop={1}>
           <Text dimColor>{status}</Text>
         </Box>
       )}
+
+      {/* Keybindings hint */}
       <Box marginTop={1}>
         <Keybindings bindings={BINDINGS} />
       </Box>

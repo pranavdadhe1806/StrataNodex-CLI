@@ -1,11 +1,20 @@
 // Keymap hook
+import type React from 'react'
 import { useInput } from 'ink'
 import type { ActionHandlers } from '../types.js'
 
 export type KeymapMode = 'nav' | 'edit'
 
-export function useKeymap(mode: KeymapMode, handlers: ActionHandlers): void {
+export function useKeymap(
+  mode: KeymapMode,
+  overlayOpen: React.MutableRefObject<boolean>,
+  handlers: ActionHandlers
+): void {
   useInput((input, key) => {
+    // When the autocomplete overlay is open, CommandInput handles all keys.
+    // Let it consume them — don't fire any navigation actions here.
+    if (overlayOpen.current) return
+
     if (mode === 'edit') {
       if (key.escape) handlers.onEsc?.()
       return

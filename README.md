@@ -123,20 +123,22 @@ Every command starts with `/`. Type `/` in the command bar to see suggestions.
 
 #### Nodes screen (inside a list)
 
-| Command                     | Args                                  | Description          |
-| --------------------------- | ------------------------------------- | -------------------- |
-| `/add node`                 | `title`                               | Add a new task       |
-| `/done`                     | `index or title`                      | Mark a task as DONE  |
-| `/delete node`              | `index or title`                      | Delete a task        |
-| `/move node`                | `ref` → `list-name`                   | Move to another list |
-| `/edit node ... title`      | `ref` → `new title`                   | Rename a task        |
-| `/edit node ... status`     | `ref` → `NOT-DONE\|IN-PROGRESS\|DONE` | Change status        |
-| `/edit node ... priority`   | `ref` → `LOW\|MEDIUM\|HIGH`           | Change priority      |
-| `/edit node ... start-date` | `ref` → `DD-MM-YYYY`                  | Set start date       |
-| `/edit node ... end-date`   | `ref` → `DD-MM-YYYY`                  | Set end date         |
-| `/add node ... tag`         | `ref` → `tag-name`                    | Add a tag            |
-| `/add node ... note`        | `ref` → `text`                        | Add a note           |
-| `/delete node ... note`     | `ref`                                 | Remove note          |
+| Command                     | Args                                  | Description                            |
+| --------------------------- | ------------------------------------- | -------------------------------------- |
+| `/add node`                 | `title`                               | Add a new root task                    |
+| `/add sub-node`             | `title`                               | Add sub-task under selected node       |
+| `/add sub-node`             | `index title`                         | Add sub-task under node at index (1.2) |
+| `/done`                     | `index or title`                      | Mark a task as DONE                    |
+| `/delete node`              | `index or title`                      | Delete a task                          |
+| `/move node`                | `ref` → `list-name`                   | Move to another list                   |
+| `/edit node ... title`      | `ref` → `new title`                   | Rename a task                          |
+| `/edit node ... status`     | `ref` → `NOT-DONE\|IN-PROGRESS\|DONE` | Change status                          |
+| `/edit node ... priority`   | `ref` → `LOW\|MEDIUM\|HIGH`           | Change priority                        |
+| `/edit node ... start-date` | `ref` → `DD-MM-YYYY`                  | Set start date                         |
+| `/edit node ... end-date`   | `ref` → `DD-MM-YYYY`                  | Set end date                           |
+| `/add node ... tag`         | `ref` → `tag-name`                    | Add a tag                              |
+| `/add node ... note`        | `ref` → `text`                        | Add a note                             |
+| `/delete node ... note`     | `ref`                                 | Remove note                            |
 
 ---
 

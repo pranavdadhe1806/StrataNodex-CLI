@@ -50,6 +50,9 @@ export function App() {
     activeHandlers.current = handlers
   }, [])
 
+  /** True when the autocomplete overlay is open — keymap skips ESC in that state */
+  const overlayOpen = useRef(false)
+
   useEffect(() => {
     activeHandlers.current = {}
     setScreenNodes([])
@@ -85,7 +88,7 @@ export function App() {
     [currentScreen, screenNodes, push, pop, exit]
   )
 
-  useKeymap(mode, {
+  useKeymap(mode, overlayOpen, {
     onUp: () => activeHandlers.current.onUp?.(),
     onDown: () => activeHandlers.current.onDown?.(),
     onLeft: () => activeHandlers.current.onLeft?.(),
@@ -184,6 +187,9 @@ export function App() {
           currentNodes={screenNodes}
           width={terminalWidth}
           onSubmit={handleCommandSubmit}
+          onOverlayChange={(open) => {
+            overlayOpen.current = open
+          }}
         />
       </Box>
     </Box>

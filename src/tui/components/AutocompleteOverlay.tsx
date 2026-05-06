@@ -19,6 +19,9 @@ export const AutocompleteOverlay: React.FC<Props> = ({
   width,
 }) => {
   if (!visible || suggestions.length === 0) return null
+  // Don't render if every suggestion is a placeholder hint (empty fillValue)
+  const allPlaceholders = suggestions.every((s) => !s.fillValue || s.isNoMatch)
+  if (allPlaceholders) return null
 
   // Scroll window: keep selectedIndex visible
   const start = Math.max(
