@@ -6,7 +6,7 @@ import { ApiError } from './ApiError.js'
 import type { User, Folder, List, Node, Tag, DailyScore, LoginResponse } from '../types/index.js'
 
 const http = axios.create({
-  timeout: 10_000,
+  timeout: 30_000, // 30s — Render free-tier cold starts can take up to ~30s
 })
 
 http.interceptors.request.use((config) => {

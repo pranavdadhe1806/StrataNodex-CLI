@@ -130,7 +130,13 @@ export function LoginScreen({ replaceScreen, registerActions }: ScreenProps) {
       </Text>
 
       {state === 'creating' && (
-        <Spinner label={chalk.hex('#8b949e')('  Setting up login session...')} />
+        <Box flexDirection="column" gap={1}>
+          <Spinner
+            label={chalk.hex('#8b949e')(
+              '  Connecting to server (may take ~15s on first launch)...'
+            )}
+          />
+        </Box>
       )}
 
       {state === 'waiting' && (
