@@ -29,7 +29,6 @@ export function WelcomeScreen({ replaceScreen, height, width }: ScreenProps) {
   })
 
   useEffect(() => {
-    // TODO: remove guest bypass when website login flow is ready
     const guestMode = process.env['STRATANODEX_GUEST'] === 'true'
     if (guestMode) {
       transition(true)
@@ -38,21 +37,50 @@ export function WelcomeScreen({ replaceScreen, height, width }: ScreenProps) {
 
     const token = getToken()
     if (!token) {
+      // No token at all — go to login
       const t = setTimeout(() => transition(false), 1200)
       return () => clearTimeout(t)
     }
 
-    getMe()
-      .then(() => {
+    // Token exists — validate with the backend.
+    // Retry on network/timeout errors (cold start), only go to login on 401.
+    let cancelled = false
+    const MAX_RETRIES = 3
+    const RETRY_DELAY = 5000
+
+    async function validateToken(attempt: number): Promise<void> {
+      if (cancelled) return
+      try {
+        await getMe()
+        if (cancelled) return
         setStatus('done')
-        const t = setTimeout(() => transition(true), 1200)
-        return () => clearTimeout(t)
-      })
-      .catch(() => {
-        setStatus('error')
-        const t = setTimeout(() => transition(false), 1500)
-        return () => clearTimeout(t)
-      })
+        setTimeout(() => transition(true), 600)
+      } catch (err: unknown) {
+        if (cancelled) return
+        const statusCode = (err as { response?: { status?: number } })?.response?.status
+        if (statusCode === 401) {
+          // Token is genuinely invalid/expired — go to login
+          setStatus('error')
+          setTimeout(() => transition(false), 1000)
+          return
+        }
+        // Network error / timeout (cold start) — retry
+        if (attempt < MAX_RETRIES) {
+          setStatus('checking')
+          setTimeout(() => validateToken(attempt + 1), RETRY_DELAY)
+        } else {
+          // All retries exhausted but token still exists — go home anyway
+          // and let the API interceptor handle 401s later
+          setStatus('done')
+          setTimeout(() => transition(true), 600)
+        }
+      }
+    }
+
+    validateToken(1)
+    return () => {
+      cancelled = true
+    }
   }, [])
 
   return (

@@ -79,7 +79,7 @@ export function App() {
           else push(screen, params)
         },
         exit,
-        refetch: () => activeHandlers.current.onCommand?.('/refresh'),
+        refetch: () => activeHandlers.current.onRefetch?.(),
       })
 
       if (result.message) setCmdResult(result.message)

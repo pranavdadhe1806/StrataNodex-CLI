@@ -64,8 +64,9 @@ export function HomeScreen({ push, registerActions }: ScreenProps) {
       onBack: () => {},
       onQuit: () => exit(),
       onCommand: handleCommand,
+      onRefetch: refetch,
     })
-  }, [folders, cursor, push, exit, registerActions, handleCommand])
+  }, [folders, cursor, push, exit, registerActions, handleCommand, refetch])
 
   if (loading)
     return (

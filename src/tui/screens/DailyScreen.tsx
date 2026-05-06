@@ -69,8 +69,9 @@ export function DailyScreen({ pop, registerActions }: ScreenProps) {
       onDown: () => setCursor((c) => Math.min(allNodes.length - 1, c + 1)),
       onBack: () => pop(),
       onCommand: handleCommand,
+      onRefetch: fetchData,
     })
-  }, [allNodes.length, pop, registerActions, handleCommand])
+  }, [allNodes.length, pop, registerActions, handleCommand, fetchData])
 
   if (loading)
     return (

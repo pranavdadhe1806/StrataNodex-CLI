@@ -64,8 +64,9 @@ export function ListsScreen({ push, pop, registerActions, folderId, folderName }
       },
       onBack: () => pop(),
       onCommand: handleCommand,
+      onRefetch: refetch,
     })
-  }, [lists, cursor, push, pop, folderName, registerActions, handleCommand])
+  }, [lists, cursor, push, pop, folderName, registerActions, handleCommand, refetch])
 
   const breadcrumbParts = folderName ? [folderName, 'Lists'] : ['Lists']
 

@@ -192,8 +192,9 @@ export function TreeScreen({
       },
       onBack: () => pop(),
       onCommand: handleCommand,
+      onRefetch: refetch,
     })
-  }, [displayEntries, cursor, toggleExpand, pop, registerActions, handleCommand])
+  }, [displayEntries, cursor, toggleExpand, pop, registerActions, handleCommand, refetch])
 
   const breadcrumbParts = [folderName, listName].filter(Boolean) as string[]
 

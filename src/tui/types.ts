@@ -8,6 +8,8 @@ export interface ActionHandlers {
   onBack?: () => void
   onQuit?: () => void
   onCommand?: (cmd: string) => void
+  /** Called by the executor after any mutation to trigger a live data refresh */
+  onRefetch?: () => void
 }
 
 export interface ScreenProps {
