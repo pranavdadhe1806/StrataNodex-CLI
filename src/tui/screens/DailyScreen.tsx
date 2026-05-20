@@ -10,7 +10,7 @@ import type { ScreenProps } from '../types.js'
 
 const BINDINGS = '[↑↓] navigate  [b] back  [/done <n>] mark done'
 
-export function DailyScreen({ pop, registerActions }: ScreenProps) {
+export function DailyScreen({ push, pop, registerActions }: ScreenProps) {
   const [todayNodes, setTodayNodes] = useState<Node[]>([])
   const [overdueNodes, setOverdueNodes] = useState<Node[]>([])
   const [loading, setLoading] = useState(true)
@@ -67,6 +67,12 @@ export function DailyScreen({ pop, registerActions }: ScreenProps) {
     registerActions({
       onUp: () => setCursor((c) => Math.max(0, c - 1)),
       onDown: () => setCursor((c) => Math.min(allNodes.length - 1, c + 1)),
+      onEnter: () => {
+        const node = allNodes[cursor]
+        if (node) {
+          push('node-details', { nodeId: node.id })
+        }
+      },
       onBack: () => pop(),
       onCommand: handleCommand,
       onRefetch: fetchData,

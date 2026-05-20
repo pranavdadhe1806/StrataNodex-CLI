@@ -13,6 +13,7 @@ import { ListsScreen } from './screens/ListsScreen.js'
 import { TreeScreen } from './screens/TreeScreen.js'
 import { DailyScreen } from './screens/DailyScreen.js'
 import { DashboardScreen } from './screens/DashboardScreen.js'
+import { NodeScreen } from './screens/NodeScreen.js'
 import { executeCommand } from '../commands/executor.js'
 import type { ActionHandlers } from './types.js'
 import type { Screen } from '../commands/registry.js'
@@ -27,6 +28,7 @@ const TUI_TO_REGISTRY: Record<string, Screen> = {
   lists: 'lists',
   tree: 'nodes',
   daily: 'nodes',
+  'node-details': 'nodes',
   dashboard: 'global',
   welcome: 'global',
   login: 'global',
@@ -154,6 +156,8 @@ export function App() {
         )
       case 'daily':
         return <DailyScreen {...screenProps} />
+      case 'node-details':
+        return <NodeScreen {...screenProps} nodeId={p['nodeId']!} />
       case 'dashboard':
         return <DashboardScreen {...screenProps} authUser={authUser} />
       default:

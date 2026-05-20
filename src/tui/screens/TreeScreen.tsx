@@ -68,6 +68,7 @@ function flattenForDisplay(
 }
 
 export function TreeScreen({
+  push,
   pop,
   registerActions,
   listId,
@@ -198,6 +199,12 @@ export function TreeScreen({
       onLeft: () => {
         const entry = displayEntries[cursor]
         if (entry) toggleExpand(entry.node.id)
+      },
+      onEnter: () => {
+        const entry = displayEntries[cursor]
+        if (entry) {
+          push('node-details', { nodeId: entry.node.id })
+        }
       },
       onBack: () => pop(),
       onCommand: handleCommand,
