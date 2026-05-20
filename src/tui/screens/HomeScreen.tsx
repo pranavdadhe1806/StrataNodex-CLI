@@ -7,6 +7,7 @@ import { FolderItem } from '../components/FolderItem.js'
 import { Keybindings } from '../components/Keybindings.js'
 import { Spinner } from '../components/Spinner.js'
 import { createFolder, deleteFolder } from '../../api/client.js'
+import { recordRecent } from '../../utils/recents.js'
 import type { ScreenProps } from '../types.js'
 
 const BINDINGS = '[↑↓] navigate  [Enter] open  [n] new  [e] edit  [d] delete  [q] quit'
@@ -59,7 +60,10 @@ export function HomeScreen({ push, registerActions }: ScreenProps) {
       onDown: () => setCursor((c) => (c < len - 1 ? c + 1 : 0)),
       onEnter: () => {
         const folder = folders[cursor]
-        if (folder) push('lists', { folderId: folder.id, folderName: folder.name })
+        if (folder) {
+          recordRecent({ id: folder.id, name: folder.name, type: 'folder' })
+          push('lists', { folderId: folder.id, folderName: folder.name })
+        }
       },
       onBack: () => {},
       onQuit: () => exit(),

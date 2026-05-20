@@ -27,7 +27,7 @@ const TUI_TO_REGISTRY: Record<string, Screen> = {
   lists: 'lists',
   tree: 'nodes',
   daily: 'nodes',
-  dashboard: 'nodes',
+  dashboard: 'global',
   welcome: 'global',
   login: 'global',
 }
@@ -39,7 +39,7 @@ export function App() {
   const terminalWidth = stdout?.columns ?? 80
 
   const { currentScreen, push, pop, replaceScreen } = useNavigation()
-  const { isLoggedIn } = useAuth()
+  const { isLoggedIn, user: authUser } = useAuth()
   const [mode, setMode] = useState<'nav' | 'edit'>('nav')
   const activeHandlers = useRef<Partial<ActionHandlers>>({})
   const [cmdResult, setCmdResult] = useState<string | null>(null)
@@ -155,7 +155,7 @@ export function App() {
       case 'daily':
         return <DailyScreen {...screenProps} />
       case 'dashboard':
-        return <DashboardScreen {...screenProps} />
+        return <DashboardScreen {...screenProps} authUser={authUser} />
       default:
         return <Text color="red">Unknown screen: {name}</Text>
     }

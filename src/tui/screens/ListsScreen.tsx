@@ -7,6 +7,7 @@ import { Breadcrumb } from '../components/Breadcrumb.js'
 import { Keybindings } from '../components/Keybindings.js'
 import { Spinner } from '../components/Spinner.js'
 import { createList, deleteList } from '../../api/client.js'
+import { recordRecent } from '../../utils/recents.js'
 import type { ScreenProps } from '../types.js'
 
 const BINDINGS = '[↑↓] navigate  [Enter] open  [b] back  [n] new  [e] edit  [d] delete'
@@ -59,8 +60,10 @@ export function ListsScreen({ push, pop, registerActions, folderId, folderName }
       onDown: () => setCursor((c) => (c < len - 1 ? c + 1 : 0)),
       onEnter: () => {
         const list = lists[cursor]
-        if (list)
+        if (list) {
+          recordRecent({ id: list.id, name: list.name, type: 'list', folderId, folderName })
           push('tree', { listId: list.id, listName: list.name, folderName: folderName ?? '' })
+        }
       },
       onBack: () => pop(),
       onCommand: handleCommand,

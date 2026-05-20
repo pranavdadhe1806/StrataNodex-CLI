@@ -20,65 +20,51 @@ const STATUS_ICON: Record<string, { icon: string; color: string }> = {
   DONE: { icon: '●', color: '#00c896' },
 }
 
-export function NodeRow({ node, depth, isSelected, isLast, isLastRoot, parentLines }: Props) {
+const ROOT_INDENT = '  '
+
+export function NodeRow({
+  node,
+  number,
+  depth,
+  isSelected,
+  isLast,
+  isLastRoot,
+  parentLines,
+}: Props) {
   const title = node.title.length > 50 ? node.title.slice(0, 47) + '...' : node.title
   const statusInfo = STATUS_ICON[node.status] ?? STATUS_ICON['TODO']!
 
-  // Build the vertical spacer line ABOVE this node (between siblings)
-  let spacerLine: string | null = null
-  if (depth === 0) {
-    // Root nodes: no spacer above the very first root
-    // (spacer is rendered below each root instead)
-    spacerLine = null
-  } else {
-    // Child nodes: vertical line spacer from parent
-    const parts: string[] = []
-    for (let i = 0; i < depth - 1; i++) {
-      parts.push(parentLines[i] ? '│     ' : '      ')
-    }
-    parts.push('│')
-    spacerLine = parts.join('')
-  }
-
-  // Build the vertical spacer line BELOW root nodes
-  let rootSpacer: string | null = null
-  if (depth === 0 && !isLastRoot) {
-    rootSpacer = '  │'
-  }
-
   return (
-    <Box flexDirection="column">
-      {/* Vertical spacer above child nodes */}
-      {spacerLine && (
-        <Box>
-          <Text color="#3a6a7a">{spacerLine}</Text>
-        </Box>
+    <Box>
+      {/* Indent / tree connector */}
+      {depth === 0 ? (
+        <Text color="#2a5a6a">{ROOT_INDENT}</Text>
+      ) : (
+        <>
+          <Text color="#2a5a6a">{ROOT_INDENT}</Text>
+          <TreeConnector depth={depth} parentLines={parentLines} isLast={isLast} />
+        </>
       )}
 
-      {/* The node itself */}
-      <Box>
-        {depth === 0 ? (
-          /* Root node: indented with spaces */
-          <Text color="#3a6a7a">{'  '}</Text>
-        ) : (
-          <TreeConnector depth={depth} parentLines={parentLines} isLast={isLast} />
-        )}
-        <Text color={statusInfo.color}>{statusInfo.icon}</Text>
-        <Text> </Text>
-        {isSelected ? (
-          <Text bold color="#00bfff">
-            {title}
-          </Text>
-        ) : (
-          <Text color="#c9d1d9">{title}</Text>
-        )}
-      </Box>
+      {/* Status icon */}
+      <Text color={statusInfo.color}>{statusInfo.icon}</Text>
+      <Text> </Text>
 
-      {/* Vertical spacer below root nodes */}
-      {rootSpacer && (
-        <Box>
-          <Text color="#3a6a7a">{rootSpacer}</Text>
-        </Box>
+      {/* Hierarchical number */}
+      {number && (
+        <Text color={isSelected ? '#00bfff' : '#3d6a7a'} dimColor={!isSelected}>
+          {number}
+        </Text>
+      )}
+      {number && <Text> </Text>}
+
+      {/* Title */}
+      {isSelected ? (
+        <Text bold color="#00bfff">
+          {title}
+        </Text>
+      ) : (
+        <Text color="#c9d1d9">{title}</Text>
       )}
     </Box>
   )

@@ -20,7 +20,7 @@ export function WelcomeScreen({ replaceScreen, height, width }: ScreenProps) {
   const transition = (loggedIn: boolean) => {
     if (done.current) return
     done.current = true
-    replaceScreen(loggedIn ? 'home' : 'login')
+    replaceScreen(loggedIn ? 'dashboard' : 'login')
   }
 
   useInput(() => {

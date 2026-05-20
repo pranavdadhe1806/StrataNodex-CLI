@@ -1,5 +1,5 @@
 import React from 'react'
-import { Box, Text } from 'ink'
+import { Text } from 'ink'
 
 interface Props {
   depth: number
@@ -8,32 +8,20 @@ interface Props {
   isLast: boolean
 }
 
-/**
- * Draws the Figma-style arrow connectors for tree nodes.
- *
- * Root nodes (depth 0): no connector
- * Children: ├──→ or └──→ with vertical lines from ancestors
- */
+// Each depth level = 4 chars wide
+const CONT = '│   ' // vertical + 3 spaces
+const BLANK = '    ' // 4 spaces
+const MID = '├── ' // branch mid-sibling
+const END = '└── ' // branch last-sibling
+
 export function TreeConnector({ depth, parentLines, isLast }: Props) {
   if (depth === 0) return null
 
-  const parts: string[] = []
-
-  // Draw vertical continuation lines for each ancestor level
+  let prefix = ''
   for (let i = 0; i < depth - 1; i++) {
-    if (parentLines[i]) {
-      parts.push('│     ')
-    } else {
-      parts.push('      ')
-    }
+    prefix += parentLines[i] ? CONT : BLANK
   }
+  prefix += isLast ? END : MID
 
-  // Draw the branch for this node
-  if (isLast) {
-    parts.push('└──→ ')
-  } else {
-    parts.push('├──→ ')
-  }
-
-  return <Text color="#3a6a7a">{parts.join('')}</Text>
+  return <Text color="#2a5a6a">{prefix}</Text>
 }
