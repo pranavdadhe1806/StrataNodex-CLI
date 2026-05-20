@@ -11,6 +11,7 @@
   },
   "scripts": {
     "dev": "tsx src/index.ts",
+    "dev:local": "cross-env STRATANODEX_API_URL=http://localhost:3000 STRATANODEX_AUTH_URL=http://localhost:3001 tsx src/index.ts",
     "build": "tsc",
     "start": "node dist/index.js",
     "test": "vitest",
@@ -50,6 +51,7 @@
     "@types/react": "^18.2.0",
     "@typescript-eslint/eslint-plugin": "^8.58.2",
     "@typescript-eslint/parser": "^8.58.2",
+    "cross-env": "^10.1.0",
     "eslint": "^8.55.0",
     "eslint-plugin-react": "^7.37.5",
     "husky": "^8.0.0",
