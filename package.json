@@ -5,11 +5,11 @@
   "homepage": "https://stratanodex.online",
   "repository": {
     "type": "git",
-    "url": "https://github.com/pranavdadhe1806/StrataNodex-CLI"
+    "url": "git+https://github.com/pranavdadhe1806/StrataNodex-CLI.git"
   },
   "type": "module",
   "bin": {
-    "stratanodex": "./dist/index.js"
+    "stratanodex": "dist/index.js"
   },
   "engines": {
     "node": ">=20.0.0"
