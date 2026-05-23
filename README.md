@@ -2,6 +2,7 @@
 
 > A keyboard-driven, terminal-based task manager for power users.
 
+[![npm version](https://img.shields.io/npm/v/stratanodex)](https://www.npmjs.com/package/stratanodex)
 [![Node.js >=20](https://img.shields.io/badge/node-%3E%3D20-brightgreen)](https://nodejs.org)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 
@@ -34,9 +35,18 @@ StrataNodex CLI is the terminal-first interface for **StrataNodex** — a hierar
 
 ---
 
-## Quick Setup (3 steps)
+## Quick Setup
 
-> **Prerequisites:** [Node.js ≥ 20](https://nodejs.org) must be installed.
+> **Prerequisites:** [Node.js ≥20](https://nodejs.org) must be installed.
+
+### Install from npm (recommended)
+
+```bash
+npm install -g stratanodex
+stratanodex
+```
+
+### Run from source
 
 ```bash
 # 1. Clone the repo
@@ -50,9 +60,7 @@ npm install
 npm run dev
 ```
 
-That's it! The CLI connects to the hosted backend automatically — **no backend or database setup needed.**
-
-On first launch you'll see the login screen. It opens your browser for authentication, and once you log in, the CLI picks it up automatically and drops you into the home screen.
+On first launch you'll see the login screen. It opens your browser to [stratanodex.online](https://stratanodex.online) for authentication, and once you log in, the CLI picks it up automatically and drops you into the home screen.
 
 ---
 
@@ -184,12 +192,11 @@ npm run dev                        # Launch the CLI
 
 These are only needed if you want to override defaults. For normal use, **you don't need any env file.**
 
-| Variable               | Default                                       | Description            |
-| ---------------------- | --------------------------------------------- | ---------------------- |
-| `STRATANODEX_API_URL`  | `https://stratanodex-backend.onrender.com`    | Override API base URL  |
-| `STRATANODEX_AUTH_URL` | `https://stratanodex-landing-page.vercel.app` | Override auth page URL |
-| `STRATANODEX_VERBOSE`  | `false`                                       | Enable verbose logging |
-| `NO_COLOR`             | unset                                         | Disable all colors     |
+| Variable              | Default                          | Description            |
+| --------------------- | -------------------------------- | ---------------------- |
+| `STRATANODEX_API_URL` | `https://api.stratanodex.online` | Override API base URL  |
+| `STRATANODEX_VERBOSE` | `false`                          | Enable verbose logging |
+| `NO_COLOR`            | unset                            | Disable all colors     |
 
 To use local overrides, copy the example file:
 

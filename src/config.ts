@@ -12,7 +12,7 @@ interface ConfigStore {
 
 const store = new Conf<ConfigStore>({ projectName: 'stratanodex' })
 
-const DEFAULT_API_URL = 'https://stratanodex-backend.onrender.com'
+const DEFAULT_API_URL = 'https://api.stratanodex.online'
 
 let runtimeApiUrl: string | undefined
 
