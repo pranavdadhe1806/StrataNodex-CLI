@@ -118,10 +118,10 @@ export const COMMAND_REGISTRY: CommandDefinition[] = [
 
   // ─── NODES SCREEN ─────────────────────────────────────────────────────────
   {
-    command: '/add node',
+    command: '/add node:',
     args: [{ name: 'node-title', type: 'text', placeholder: 'node title' }],
     screens: ['nodes'],
-    description: 'Create a new root node',
+    description: 'Create a new root node  →  /add node: My Task',
   },
   {
     command: '/add sub-node',
@@ -131,243 +131,168 @@ export const COMMAND_REGISTRY: CommandDefinition[] = [
   },
   {
     command: '/done',
-    args: [{ name: 'index-or-title', type: 'index-or-title', placeholder: '1 or "task title"' }],
+    args: [{ name: 'index-or-title', type: 'index-or-title', placeholder: '1  or  task title' }],
     screens: ['nodes'],
     description: 'Shorthand: set node status to DONE',
   },
   {
-    command: '/delete node',
-    args: [{ name: 'index-or-title', type: 'index-or-title', placeholder: '1 or "task title"' }],
+    command: '/delete node:',
+    args: [{ name: 'index-or-title', type: 'index-or-title', placeholder: '1  or  task title' }],
     screens: ['nodes'],
-    description: 'Delete a node',
+    description: 'Delete a node  →  /delete node: 1',
   },
   {
     command: '/move node',
     args: [
-      { name: 'index-or-title', type: 'index-or-title', placeholder: '1 or "task title"' },
+      { name: 'index-or-title', type: 'index-or-title', placeholder: '1  or  task title' },
       { name: 'list-name', type: 'text', placeholder: 'destination list name' },
     ],
     screens: ['nodes'],
     description: 'Move node to another list',
   },
 
-  // /edit node ... <property>
+  // ── /edit node REF PROPERTY: VALUE  (use ... for currently selected node) ──
   {
-    command: '/edit node ... title',
-    args: [
-      { name: 'index-or-title', type: 'index-or-title', placeholder: '1 or "task title"' },
-      { name: 'new-title', type: 'text', placeholder: 'new title' },
-    ],
+    command: '/edit node ... title:',
+    args: [{ name: 'new-title', type: 'text', placeholder: 'new title' }],
     screens: ['nodes'],
-    description: 'Edit node title',
+    description: 'Rename node  →  /edit node 1 title: New Name  (or ... for selected)',
   },
   {
-    command: '/edit node ... position',
-    args: [
-      { name: 'index-or-title', type: 'index-or-title', placeholder: '1 or "task title"' },
-      { name: 'new-index', type: 'number', placeholder: '2' },
-    ],
+    command: '/edit node ... position:',
+    args: [{ name: 'new-index', type: 'number', placeholder: '2' }],
     screens: ['nodes'],
-    description: 'Reorder node',
+    description: 'Reorder node  →  /edit node 1 position: 3',
   },
   {
-    command: '/edit node ... status',
-    args: [
-      { name: 'index-or-title', type: 'index-or-title', placeholder: '1 or "task title"' },
-      { name: 'status', type: 'status', placeholder: 'NOT-DONE | IN-PROGRESS | DONE' },
-    ],
+    command: '/edit node ... status:',
+    args: [{ name: 'status', type: 'status', placeholder: 'NOT-DONE | IN-PROGRESS | DONE' }],
     screens: ['nodes'],
-    description: 'Change node status',
+    description: 'Change status  →  /edit node 1 status: DONE',
   },
   {
-    command: '/edit node ... priority',
-    args: [
-      { name: 'index-or-title', type: 'index-or-title', placeholder: '1 or "task title"' },
-      { name: 'priority', type: 'priority', placeholder: 'LOW | MEDIUM | HIGH' },
-    ],
+    command: '/edit node ... priority:',
+    args: [{ name: 'priority', type: 'priority', placeholder: 'LOW | MEDIUM | HIGH' }],
     screens: ['nodes'],
-    description: 'Change node priority',
+    description: 'Change priority  →  /edit node 1 priority: HIGH',
   },
   {
-    command: '/edit node ... start-date',
-    args: [
-      { name: 'index-or-title', type: 'index-or-title', placeholder: '1 or "task title"' },
-      { name: 'start-date', type: 'date', placeholder: 'DD-MM-YYYY' },
-    ],
+    command: '/edit node ... start-date:',
+    args: [{ name: 'start-date', type: 'date', placeholder: 'DD-MM-YYYY' }],
     screens: ['nodes'],
-    description: 'Edit start date',
+    description: 'Edit start date  →  /edit node 1 start-date: 24-05-2026',
   },
   {
-    command: '/edit node ... start-time',
-    args: [
-      { name: 'index-or-title', type: 'index-or-title', placeholder: '1 or "task title"' },
-      { name: 'start-time', type: 'time', placeholder: 'HH:MM AM/PM' },
-    ],
+    command: '/edit node ... start-time:',
+    args: [{ name: 'start-time', type: 'time', placeholder: 'HH:MM AM/PM' }],
     screens: ['nodes'],
-    description: 'Edit start time',
+    description: 'Edit start time  →  /edit node 1 start-time: 09:00 AM',
   },
   {
-    command: '/edit node ... end-date',
-    args: [
-      { name: 'index-or-title', type: 'index-or-title', placeholder: '1 or "task title"' },
-      { name: 'end-date', type: 'date', placeholder: 'DD-MM-YYYY' },
-    ],
+    command: '/edit node ... end-date:',
+    args: [{ name: 'end-date', type: 'date', placeholder: 'DD-MM-YYYY' }],
     screens: ['nodes'],
-    description: 'Edit end date',
+    description: 'Edit end date  →  /edit node 1 end-date: 25-05-2026',
   },
   {
-    command: '/edit node ... end-time',
-    args: [
-      { name: 'index-or-title', type: 'index-or-title', placeholder: '1 or "task title"' },
-      { name: 'end-time', type: 'time', placeholder: 'HH:MM AM/PM' },
-    ],
+    command: '/edit node ... end-time:',
+    args: [{ name: 'end-time', type: 'time', placeholder: 'HH:MM AM/PM' }],
     screens: ['nodes'],
-    description: 'Edit end time',
+    description: 'Edit end time  →  /edit node 1 end-time: 05:00 PM',
   },
   {
-    command: '/edit node ... tag',
-    args: [
-      { name: 'index-or-title', type: 'index-or-title', placeholder: '1 or "task title"' },
-      { name: 'tag-name', type: 'text', placeholder: 'tag name' },
-    ],
+    command: '/edit node ... note:',
+    args: [{ name: 'new-note', type: 'text', placeholder: 'note text' }],
     screens: ['nodes'],
-    description: 'Edit node tag',
-  },
-  {
-    command: '/edit node ... note',
-    args: [
-      { name: 'index-or-title', type: 'index-or-title', placeholder: '1 or "task title"' },
-      { name: 'new-note', type: 'text', placeholder: 'note text' },
-    ],
-    screens: ['nodes'],
-    description: 'Edit note',
+    description: 'Edit note  →  /edit node 1 note: My note here',
   },
 
-  // /add node ... <property>
+  // ── /add node REF PROPERTY: VALUE ──────────────────────────────────────────
   {
-    command: '/add node ... start-date',
-    args: [
-      { name: 'index-or-title', type: 'index-or-title', placeholder: '1 or "task title"' },
-      { name: 'start-date', type: 'date', placeholder: 'DD-MM-YYYY' },
-    ],
+    command: '/add node ... start-date:',
+    args: [{ name: 'start-date', type: 'date', placeholder: 'DD-MM-YYYY' }],
     screens: ['nodes'],
-    description: 'Add start date',
+    description: 'Add start date  →  /add node 1 start-date: 24-05-2026',
   },
   {
-    command: '/add node ... start-time',
-    args: [
-      { name: 'index-or-title', type: 'index-or-title', placeholder: '1 or "task title"' },
-      { name: 'start-time', type: 'time', placeholder: 'HH:MM AM/PM' },
-    ],
+    command: '/add node ... start-time:',
+    args: [{ name: 'start-time', type: 'time', placeholder: 'HH:MM AM/PM' }],
     screens: ['nodes'],
-    description: 'Add start time (default 12:00 AM)',
+    description: 'Add start time  →  /add node 1 start-time: 09:00 AM',
   },
   {
-    command: '/add node ... end-date',
-    args: [
-      { name: 'index-or-title', type: 'index-or-title', placeholder: '1 or "task title"' },
-      { name: 'end-date', type: 'date', placeholder: 'DD-MM-YYYY' },
-    ],
+    command: '/add node ... end-date:',
+    args: [{ name: 'end-date', type: 'date', placeholder: 'DD-MM-YYYY' }],
     screens: ['nodes'],
-    description: 'Add end date',
+    description: 'Add end date  →  /add node 1 end-date: 25-05-2026',
   },
   {
-    command: '/add node ... end-time',
-    args: [
-      { name: 'index-or-title', type: 'index-or-title', placeholder: '1 or "task title"' },
-      { name: 'end-time', type: 'time', placeholder: 'HH:MM AM/PM' },
-    ],
+    command: '/add node ... end-time:',
+    args: [{ name: 'end-time', type: 'time', placeholder: 'HH:MM AM/PM' }],
     screens: ['nodes'],
-    description: 'Add end time (default 12:00 AM)',
+    description: 'Add end time  →  /add node 1 end-time: 05:00 PM',
   },
   {
-    command: '/add node ... tag',
-    args: [
-      { name: 'index-or-title', type: 'index-or-title', placeholder: '1 or "task title"' },
-      { name: 'tag-name', type: 'text', placeholder: 'tag name' },
-    ],
+    command: '/add node ... note:',
+    args: [{ name: 'note-text', type: 'text', placeholder: 'note text' }],
     screens: ['nodes'],
-    description: 'Add tag to node',
+    description: 'Add note  →  /add node 1 note: My note here',
   },
   {
-    command: '/add node ... note',
-    args: [
-      { name: 'index-or-title', type: 'index-or-title', placeholder: '1 or "task title"' },
-      { name: 'note-text', type: 'text', placeholder: 'note text' },
-    ],
+    command: '/add node ... status:',
+    args: [{ name: 'status', type: 'status', placeholder: 'NOT-DONE | IN-PROGRESS | DONE' }],
     screens: ['nodes'],
-    description: 'Add note',
+    description: 'Set status  →  /add node 1 status: IN-PROGRESS',
   },
   {
-    command: '/add node ... status',
-    args: [
-      { name: 'index-or-title', type: 'index-or-title', placeholder: '1 or "task title"' },
-      { name: 'status', type: 'status', placeholder: 'NOT-DONE | IN-PROGRESS | DONE' },
-    ],
+    command: '/add node ... priority:',
+    args: [{ name: 'priority', type: 'priority', placeholder: 'LOW | MEDIUM | HIGH' }],
     screens: ['nodes'],
-    description: 'Set status',
-  },
-  {
-    command: '/add node ... priority',
-    args: [
-      { name: 'index-or-title', type: 'index-or-title', placeholder: '1 or "task title"' },
-      { name: 'priority', type: 'priority', placeholder: 'LOW | MEDIUM | HIGH' },
-    ],
-    screens: ['nodes'],
-    description: 'Set priority',
+    description: 'Set priority  →  /add node 1 priority: HIGH',
   },
 
-  // /delete node ... <property>
+  // ── /delete node REF PROPERTY ──────────────────────────────────────────────
   {
     command: '/delete node ... start-date',
-    args: [{ name: 'index-or-title', type: 'index-or-title', placeholder: '1 or "task title"' }],
+    args: [{ name: 'index-or-title', type: 'index-or-title', placeholder: '1  or  task title' }],
     screens: ['nodes'],
-    description: 'Remove start date',
+    description: 'Remove start date  →  /delete node 1 start-date',
   },
   {
     command: '/delete node ... start-time',
-    args: [{ name: 'index-or-title', type: 'index-or-title', placeholder: '1 or "task title"' }],
+    args: [{ name: 'index-or-title', type: 'index-or-title', placeholder: '1  or  task title' }],
     screens: ['nodes'],
-    description: 'Remove start time',
+    description: 'Remove start time  →  /delete node 1 start-time',
   },
   {
     command: '/delete node ... end-date',
-    args: [{ name: 'index-or-title', type: 'index-or-title', placeholder: '1 or "task title"' }],
+    args: [{ name: 'index-or-title', type: 'index-or-title', placeholder: '1  or  task title' }],
     screens: ['nodes'],
-    description: 'Remove end date',
+    description: 'Remove end date  →  /delete node 1 end-date',
   },
   {
     command: '/delete node ... end-time',
-    args: [{ name: 'index-or-title', type: 'index-or-title', placeholder: '1 or "task title"' }],
+    args: [{ name: 'index-or-title', type: 'index-or-title', placeholder: '1  or  task title' }],
     screens: ['nodes'],
-    description: 'Remove end time',
-  },
-  {
-    command: '/delete node ... tag',
-    args: [
-      { name: 'index-or-title', type: 'index-or-title', placeholder: '1 or "task title"' },
-      { name: 'tag-name', type: 'text', placeholder: 'tag name' },
-    ],
-    screens: ['nodes'],
-    description: 'Remove tag from node',
+    description: 'Remove end time  →  /delete node 1 end-time',
   },
   {
     command: '/delete node ... note',
-    args: [{ name: 'index-or-title', type: 'index-or-title', placeholder: '1 or "task title"' }],
+    args: [{ name: 'index-or-title', type: 'index-or-title', placeholder: '1  or  task title' }],
     screens: ['nodes'],
-    description: 'Remove note',
+    description: 'Remove note  →  /delete node 1 note',
   },
   {
     command: '/delete node ... status',
-    args: [{ name: 'index-or-title', type: 'index-or-title', placeholder: '1 or "task title"' }],
+    args: [{ name: 'index-or-title', type: 'index-or-title', placeholder: '1  or  task title' }],
     screens: ['nodes'],
-    description: 'Remove status',
+    description: 'Remove status  →  /delete node 1 status',
   },
   {
     command: '/delete node ... priority',
-    args: [{ name: 'index-or-title', type: 'index-or-title', placeholder: '1 or "task title"' }],
+    args: [{ name: 'index-or-title', type: 'index-or-title', placeholder: '1  or  task title' }],
     screens: ['nodes'],
-    description: 'Remove priority',
+    description: 'Remove priority  →  /delete node 1 priority',
   },
 ]
 

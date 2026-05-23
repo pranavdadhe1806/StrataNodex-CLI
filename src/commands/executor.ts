@@ -225,8 +225,184 @@ export async function executeCommand(
   const nodes = ctx.currentNodes ?? []
   const listId = ctx.listId
 
-  if (trimmed.startsWith('/add node ') && !trimmed.includes(' ... ')) {
-    const title = trimmed.slice('/add node '.length).trim()
+  // Supported property keywords for node property operations
+  const PROP_RE = 'title|start-date|end-date|start-time|end-time|tag|note|status|position|priority'
+
+  // Resolve a node ref — '...' means the currently selected/viewed node
+  const resolveRef = (ref: string): ReturnType<typeof resolveNode> => {
+    if (ref.trim() === '...') {
+      if (!ctx.selectedNodeId) return undefined
+      return flattenTree(nodes).find((n) => n.id === ctx.selectedNodeId)
+    }
+    return resolveNode(ref, nodes)
+  }
+
+  // ── 1. /VERB node REF PROPERTY[: VALUE]  (spec format) ───────────────────
+  // Must be checked first to prevent property cmds being caught by simpler patterns
+  const propMatch = trimmed.match(
+    new RegExp(`^\\/(edit|add|delete) node (.+?) (${PROP_RE})(?::\\s*(.*))?$`, 'i')
+  )
+  if (propMatch) {
+    const verb = propMatch[1]!.toLowerCase() as 'edit' | 'add' | 'delete'
+    const ref = propMatch[2]!.trim()
+    const prop = propMatch[3]!.toLowerCase()
+    const val = (propMatch[4] ?? '').trim()
+
+    const node = resolveRef(ref)
+    if (!node) return { ok: false, message: `Node "${ref}" not found.` }
+
+    try {
+      switch (prop) {
+        case 'title': {
+          if (verb === 'delete') return { ok: false, message: 'Cannot delete a title.' }
+          if (!val) return { ok: false, message: 'New title required.' }
+          await updateNode(node.id, { title: val })
+          ctx.refetch?.()
+          return { ok: true, message: `✓ Renamed to "${val}"` }
+        }
+
+        case 'status': {
+          const statusMap: Record<string, 'TODO' | 'IN_PROGRESS' | 'DONE'> = {
+            'NOT-DONE': 'TODO',
+            TODO: 'TODO',
+            'IN-PROGRESS': 'IN_PROGRESS',
+            IN_PROGRESS: 'IN_PROGRESS',
+            DONE: 'DONE',
+          }
+          if (verb === 'delete') {
+            await updateNode(node.id, { status: 'TODO' })
+          } else {
+            const mapped =
+              statusMap[val.toUpperCase().replace(/-/g, '_')] ?? statusMap[val.toUpperCase()]
+            if (!mapped)
+              return { ok: false, message: 'Invalid status. Use NOT-DONE, IN-PROGRESS, or DONE.' }
+            await updateNode(node.id, { status: mapped })
+          }
+          ctx.refetch?.()
+          return { ok: true, message: '✓ Status updated' }
+        }
+
+        case 'priority': {
+          const priorityMap: Record<string, 'LOW' | 'MEDIUM' | 'HIGH'> = {
+            LOW: 'LOW',
+            MEDIUM: 'MEDIUM',
+            HIGH: 'HIGH',
+          }
+          if (verb === 'delete') {
+            await updateNode(node.id, { priority: null })
+          } else {
+            const mapped = priorityMap[val.toUpperCase()]
+            if (!mapped)
+              return { ok: false, message: 'Invalid priority. Use LOW, MEDIUM, or HIGH.' }
+            await updateNode(node.id, { priority: mapped })
+          }
+          ctx.refetch?.()
+          return { ok: true, message: '✓ Priority updated' }
+        }
+
+        case 'start-date': {
+          if (verb === 'delete') {
+            await updateNode(node.id, { startAt: null })
+          } else {
+            const iso = parseDate(val)
+            if (!iso) return { ok: false, message: 'Invalid date. Use DD-MM-YYYY.' }
+            await updateNode(node.id, { startAt: iso })
+          }
+          ctx.refetch?.()
+          return { ok: true, message: '✓ Start date updated' }
+        }
+
+        case 'end-date': {
+          if (verb === 'delete') {
+            await updateNode(node.id, { endAt: null })
+          } else {
+            const iso = parseDate(val)
+            if (!iso) return { ok: false, message: 'Invalid date. Use DD-MM-YYYY.' }
+            await updateNode(node.id, { endAt: iso })
+          }
+          ctx.refetch?.()
+          return { ok: true, message: '✓ End date updated' }
+        }
+
+        case 'start-time': {
+          if (verb === 'delete') {
+            await updateNode(node.id, { startAt: null })
+          } else {
+            const iso = parseTime(val, node.startAt ?? undefined)
+            if (!iso) return { ok: false, message: 'Invalid time. Use HH:MM AM/PM.' }
+            await updateNode(node.id, { startAt: iso })
+          }
+          ctx.refetch?.()
+          return { ok: true, message: '✓ Start time updated' }
+        }
+
+        case 'end-time': {
+          if (verb === 'delete') {
+            await updateNode(node.id, { endAt: null })
+          } else {
+            const iso = parseTime(val, node.endAt ?? undefined)
+            if (!iso) return { ok: false, message: 'Invalid time. Use HH:MM AM/PM.' }
+            await updateNode(node.id, { endAt: iso })
+          }
+          ctx.refetch?.()
+          return { ok: true, message: '✓ End time updated' }
+        }
+
+        case 'tag': {
+          // Tags by name need a tag ID lookup
+          return {
+            ok: false,
+            message: 'Tag operations require a tag ID. Use /tags to list available tags.',
+          }
+        }
+
+        case 'note': {
+          if (verb === 'delete') {
+            await updateNode(node.id, { notes: null })
+          } else {
+            if (!val) return { ok: false, message: 'Note text required.' }
+            await updateNode(node.id, { notes: val })
+          }
+          ctx.refetch?.()
+          return { ok: true, message: '✓ Note updated' }
+        }
+
+        case 'position': {
+          const pos = parseInt(val, 10)
+          if (isNaN(pos)) return { ok: false, message: 'Position must be a number.' }
+          await moveNode(node.id, node.parentId ?? null, pos - 1)
+          ctx.refetch?.()
+          return { ok: true, message: `✓ Node moved to position ${pos}` }
+        }
+
+        default:
+          return { ok: false, message: `Unknown property "${prop}".` }
+      }
+    } catch (e: unknown) {
+      return { ok: false, message: (e as Error).message }
+    }
+  }
+
+  // ── 2. /edit node REF: NEW-TITLE  (title rename shorthand) ───────────────
+  const renameMatch = trimmed.match(/^\/edit node (.+?):\s*(.+)$/)
+  if (renameMatch) {
+    const ref = renameMatch[1]!.trim()
+    const newTitle = renameMatch[2]!.trim()
+    const node = resolveRef(ref)
+    if (!node) return { ok: false, message: `Node "${ref}" not found.` }
+    try {
+      await updateNode(node.id, { title: newTitle })
+      ctx.refetch?.()
+      return { ok: true, message: `✓ Renamed to "${newTitle}"` }
+    } catch (e: unknown) {
+      return { ok: false, message: (e as Error).message }
+    }
+  }
+
+  // ── 3. /add node: TITLE  or  /add node TITLE  (create root node) ─────────
+  const createNodeMatch = trimmed.match(/^\/add node(?::\s*|\s+)(.+)$/)
+  if (createNodeMatch) {
+    const title = createNodeMatch[1]!.trim()
     if (!title) return { ok: false, message: 'Node title required.' }
     if (!listId) return { ok: false, message: 'Not inside a list.' }
     try {
@@ -238,19 +414,18 @@ export async function executeCommand(
     }
   }
 
+  // ── 4. /add sub-node [INDEX] TITLE ──────────────────────────────────────
   if (trimmed.startsWith('/add sub-node ')) {
     const rest = trimmed.slice('/add sub-node '.length).trim()
     if (!rest) return { ok: false, message: 'Sub-node title required.' }
     if (!listId) return { ok: false, message: 'Not inside a list.' }
 
-    // Check if first word is a numeric index like "1", "1.2", "1.2.1"
     const parts = rest.split(/\s+/)
     const indexPattern = /^\d+(\.\d+)*$/
     let parentId: string | undefined
     let title: string
 
     if (indexPattern.test(parts[0]!)) {
-      // /add sub-node <index> <title>
       const idx = parts[0]!
       title = parts.slice(1).join(' ')
       if (!title) return { ok: false, message: 'Sub-node title required after index.' }
@@ -268,7 +443,6 @@ export async function executeCommand(
       parentId = numberMap.get(idx)
       if (!parentId) return { ok: false, message: `Node "${idx}" not found.` }
     } else {
-      // /add sub-node <title> — use currently selected node
       title = rest
       parentId = ctx.selectedNodeId
       if (!parentId)
@@ -287,9 +461,10 @@ export async function executeCommand(
     }
   }
 
+  // ── 5. /done REF ────────────────────────────────────────────────────────
   if (trimmed.startsWith('/done ')) {
     const ref = trimmed.slice('/done '.length).trim()
-    const node = resolveNode(ref, nodes)
+    const node = resolveRef(ref)
     if (!node) return { ok: false, message: `Node "${ref}" not found.` }
     try {
       await updateNode(node.id, { status: 'DONE' })
@@ -300,9 +475,11 @@ export async function executeCommand(
     }
   }
 
-  if (trimmed.startsWith('/delete node ') && !trimmed.includes(' ... ')) {
-    const ref = trimmed.slice('/delete node '.length).trim()
-    const node = resolveNode(ref, nodes)
+  // ── 6. /delete node: REF  or  /delete node REF  (delete whole node) ─────
+  const deleteNodeMatch = trimmed.match(/^\/delete node(?::\s*|\s+)(.+)$/)
+  if (deleteNodeMatch) {
+    const ref = deleteNodeMatch[1]!.trim()
+    const node = resolveRef(ref)
     if (!node) return { ok: false, message: `Node "${ref}" not found.` }
     try {
       await deleteNode(node.id)
@@ -313,16 +490,16 @@ export async function executeCommand(
     }
   }
 
+  // ── 7. /move node REF LIST-NAME ─────────────────────────────────────────
   if (trimmed.startsWith('/move node ')) {
     const rest = trimmed.slice('/move node '.length).trim()
     const spaceIdx = rest.indexOf(' ')
     if (spaceIdx === -1) return { ok: false, message: 'Usage: /move node <ref> <list-name>' }
     const ref = rest.slice(0, spaceIdx).trim()
     const destListName = rest.slice(spaceIdx + 1).trim()
-    const node = resolveNode(ref, nodes)
+    const node = resolveRef(ref)
     if (!node) return { ok: false, message: `Node "${ref}" not found.` }
     try {
-      // Find destination list across all folders
       const folders = await getFolders()
       let destListId: string | undefined
       for (const folder of folders) {
@@ -337,141 +514,6 @@ export async function executeCommand(
       await moveNode(node.id, null, 0)
       ctx.refetch?.()
       return { ok: true, message: `✓ Moved "${node.title}" to "${destListName}"` }
-    } catch (e: unknown) {
-      return { ok: false, message: (e as Error).message }
-    }
-  }
-
-  // ── /edit node ... <property> and /add node ... <property> ───────────────
-  const editNodeMatch = trimmed.match(/^\/(edit|add|delete) node (.+?) \.\.\. (\S+)(?:\s+(.*))?$/)
-  if (editNodeMatch) {
-    const verb = editNodeMatch[1]! as 'edit' | 'add' | 'delete'
-    const ref = editNodeMatch[2]!.trim()
-    const property = editNodeMatch[3]!.trim()
-    const value = (editNodeMatch[4] ?? '').trim()
-
-    const node = resolveNode(ref, nodes)
-    if (!node) return { ok: false, message: `Node "${ref}" not found.` }
-
-    try {
-      switch (property) {
-        case 'title':
-          if (!value) return { ok: false, message: 'New title required.' }
-          await updateNode(node.id, { title: value })
-          ctx.refetch?.()
-          return { ok: true, message: `✓ Renamed to "${value}"` }
-
-        case 'status': {
-          const statusMap: Record<string, string> = {
-            'NOT-DONE': 'TODO',
-            'IN-PROGRESS': 'IN_PROGRESS',
-            DONE: 'DONE',
-          }
-          if (verb === 'delete') {
-            await updateNode(node.id, { status: 'TODO' })
-          } else {
-            const mapped = statusMap[value.toUpperCase()]
-            if (!mapped)
-              return { ok: false, message: `Invalid status. Use NOT-DONE, IN-PROGRESS, or DONE.` }
-            await updateNode(node.id, { status: mapped as 'TODO' | 'IN_PROGRESS' | 'DONE' })
-          }
-          ctx.refetch?.()
-          return { ok: true, message: `✓ Status updated` }
-        }
-
-        case 'priority': {
-          const priorityMap: Record<string, string> = { LOW: 'LOW', MEDIUM: 'MEDIUM', HIGH: 'HIGH' }
-          if (verb === 'delete') {
-            await updateNode(node.id, { priority: null })
-          } else {
-            const mapped = priorityMap[value.toUpperCase()]
-            if (!mapped)
-              return { ok: false, message: `Invalid priority. Use LOW, MEDIUM, or HIGH.` }
-            await updateNode(node.id, { priority: mapped as 'LOW' | 'MEDIUM' | 'HIGH' })
-          }
-          ctx.refetch?.()
-          return { ok: true, message: `✓ Priority updated` }
-        }
-
-        case 'start-date': {
-          if (verb === 'delete') {
-            await updateNode(node.id, { startAt: null })
-          } else {
-            const iso = parseDate(value)
-            if (!iso) return { ok: false, message: 'Invalid date. Use DD-MM-YYYY.' }
-            await updateNode(node.id, { startAt: iso })
-          }
-          ctx.refetch?.()
-          return { ok: true, message: `✓ Start date updated` }
-        }
-
-        case 'end-date': {
-          if (verb === 'delete') {
-            await updateNode(node.id, { endAt: null })
-          } else {
-            const iso = parseDate(value)
-            if (!iso) return { ok: false, message: 'Invalid date. Use DD-MM-YYYY.' }
-            await updateNode(node.id, { endAt: iso })
-          }
-          ctx.refetch?.()
-          return { ok: true, message: `✓ End date updated` }
-        }
-
-        case 'start-time': {
-          if (verb === 'delete') {
-            await updateNode(node.id, { startAt: null })
-          } else {
-            const iso = parseTime(value, node.startAt ?? undefined)
-            if (!iso) return { ok: false, message: 'Invalid time. Use HH:MM AM/PM.' }
-            await updateNode(node.id, { startAt: iso })
-          }
-          ctx.refetch?.()
-          return { ok: true, message: `✓ Start time updated` }
-        }
-
-        case 'end-time': {
-          if (verb === 'delete') {
-            await updateNode(node.id, { endAt: null })
-          } else {
-            const iso = parseTime(value, node.endAt ?? undefined)
-            if (!iso) return { ok: false, message: 'Invalid time. Use HH:MM AM/PM.' }
-            await updateNode(node.id, { endAt: iso })
-          }
-          ctx.refetch?.()
-          return { ok: true, message: `✓ End time updated` }
-        }
-
-        case 'tag': {
-          if (!value && verb !== 'delete') return { ok: false, message: 'Tag name required.' }
-          // Tags by name need a tag ID. For now, signal the screen to handle.
-          return {
-            ok: false,
-            message: 'Tag operations require a tag ID. Use /tags to list available tags.',
-          }
-        }
-
-        case 'note': {
-          if (verb === 'delete') {
-            await updateNode(node.id, { notes: null })
-          } else {
-            if (!value) return { ok: false, message: 'Note text required.' }
-            await updateNode(node.id, { notes: value })
-          }
-          ctx.refetch?.()
-          return { ok: true, message: `✓ Note updated` }
-        }
-
-        case 'position': {
-          const pos = parseInt(value, 10)
-          if (isNaN(pos)) return { ok: false, message: 'Position must be a number.' }
-          await moveNode(node.id, node.parentId ?? null, pos - 1)
-          ctx.refetch?.()
-          return { ok: true, message: `✓ Node moved to position ${pos}` }
-        }
-
-        default:
-          return { ok: false, message: `Unknown property "${property}".` }
-      }
     } catch (e: unknown) {
       return { ok: false, message: (e as Error).message }
     }
