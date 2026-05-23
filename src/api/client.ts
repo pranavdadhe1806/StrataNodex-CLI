@@ -171,11 +171,12 @@ export const getStreak = (): Promise<{ streak: number }> =>
 // ── CLI Session (browser-based auth handshake) ────────────────────────────────
 // Backend mounts these at /api/auth/cli-session (see app.ts)
 
-export const createCliSession = (): Promise<{ code: string }> =>
+export const createCliSession = (): Promise<{ code: string; url: string }> =>
   http
     .post<{ code: string; url: string; expiresAt: string }>('/api/auth/cli-session')
     .then((r) => ({
       code: r.data.code,
+      url: r.data.url,
     }))
 
 export const pollCliSession = (
