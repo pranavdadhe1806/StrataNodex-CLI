@@ -4,13 +4,10 @@ import { Box, Text } from 'ink'
 import { useLists } from '../hooks/useLists.js'
 import { ListItem } from '../components/ListItem.js'
 import { Breadcrumb } from '../components/Breadcrumb.js'
-import { Keybindings } from '../components/Keybindings.js'
 import { Spinner } from '../components/Spinner.js'
 import { createList, deleteList } from '../../api/client.js'
 import { recordRecent } from '../../utils/recents.js'
 import type { ScreenProps } from '../types.js'
-
-const BINDINGS = '[↑↓] navigate  [Enter] open  [b] back  [n] new  [e] edit  [d] delete'
 
 interface Props extends ScreenProps {
   folderId: string
@@ -110,9 +107,6 @@ export function ListsScreen({ push, pop, registerActions, folderId, folderName }
           <Text dimColor>{status}</Text>
         </Box>
       )}
-      <Box marginTop={1}>
-        <Keybindings bindings={BINDINGS} />
-      </Box>
     </Box>
   )
 }

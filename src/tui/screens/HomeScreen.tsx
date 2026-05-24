@@ -4,13 +4,10 @@ import { Box, Text } from 'ink'
 import { useApp } from 'ink'
 import { useFolders } from '../hooks/useFolders.js'
 import { FolderItem } from '../components/FolderItem.js'
-import { Keybindings } from '../components/Keybindings.js'
 import { Spinner } from '../components/Spinner.js'
 import { createFolder, deleteFolder } from '../../api/client.js'
 import { recordRecent } from '../../utils/recents.js'
 import type { ScreenProps } from '../types.js'
-
-const BINDINGS = '[↑↓] navigate  [Enter] open  [n] new  [e] edit  [d] delete  [q] quit'
 
 export function HomeScreen({ push, pop, registerActions }: ScreenProps) {
   const { folders, loading, error, refetch } = useFolders()
@@ -122,11 +119,6 @@ export function HomeScreen({ push, pop, registerActions }: ScreenProps) {
           <Text dimColor>{status}</Text>
         </Box>
       )}
-
-      {/* Keybindings hint */}
-      <Box marginTop={1}>
-        <Keybindings bindings={BINDINGS} />
-      </Box>
     </Box>
   )
 }
