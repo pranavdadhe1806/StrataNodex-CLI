@@ -68,6 +68,16 @@ export function App() {
     activeHandlers.current = handlers
   }, [])
 
+  /**
+   * safeBack — navigate to the previous screen but never pop past 'dashboard'.
+   * This is the equivalent of Android's back button: dashboard acts as the home floor.
+   */
+  const safeBack = useCallback(() => {
+    const floor = ['dashboard', 'welcome', 'login']
+    if (floor.includes(currentScreen.name)) return
+    pop()
+  }, [currentScreen.name, pop])
+
   /** True when the autocomplete overlay is open — keymap skips ESC in that state */
   const overlayOpen = useRef(false)
 
@@ -90,7 +100,7 @@ export function App() {
         currentNodes: screenNodes,
         selectedNodeId,
         navigate: (screen, params) => {
-          if (screen === '__pop__') pop()
+          if (screen === '__pop__') safeBack()
           else push(screen, params)
         },
         exit,
@@ -100,7 +110,7 @@ export function App() {
       if (result.message) setCmdResult(result.message)
       setTimeout(() => setCmdResult(null), 3000)
     },
-    [currentScreen, screenNodes, selectedNodeId, push, pop, exit]
+    [currentScreen, screenNodes, selectedNodeId, push, pop, safeBack, exit]
   )
 
   useKeymap(mode, overlayOpen, {
@@ -114,7 +124,13 @@ export function App() {
         setMode('nav')
         return
       }
-      activeHandlers.current.onBack?.()
+      // Always go back; each screen's onBack calls safeBack (passed as pop).
+      // This ensures b/back always works even if a screen forgot to register onBack.
+      if (activeHandlers.current.onBack) {
+        activeHandlers.current.onBack()
+      } else {
+        safeBack()
+      }
     },
     onEsc: () => {
       setMode('nav')
@@ -131,7 +147,7 @@ export function App() {
   const middleHeight = Math.max(3, terminalHeight - TOP_HEIGHT - BOTTOM_BASE_ROWS)
   const screenProps = {
     push,
-    pop,
+    pop: safeBack, // screens call pop() → safeBack → stops at dashboard
     replaceScreen,
     registerActions,
     height: middleHeight,

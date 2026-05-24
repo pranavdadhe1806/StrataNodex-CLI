@@ -12,7 +12,7 @@ import type { ScreenProps } from '../types.js'
 
 const BINDINGS = '[↑↓] navigate  [Enter] open  [n] new  [e] edit  [d] delete  [q] quit'
 
-export function HomeScreen({ push, registerActions }: ScreenProps) {
+export function HomeScreen({ push, pop, registerActions }: ScreenProps) {
   const { folders, loading, error, refetch } = useFolders()
   const [cursor, setCursor] = useState(0)
   const [status, setStatus] = useState<string | null>(null)
@@ -65,12 +65,12 @@ export function HomeScreen({ push, registerActions }: ScreenProps) {
           push('lists', { folderId: folder.id, folderName: folder.name })
         }
       },
-      onBack: () => {},
+      onBack: () => pop(),
       onQuit: () => exit(),
       onCommand: handleCommand,
       onRefetch: refetch,
     })
-  }, [folders, cursor, push, exit, registerActions, handleCommand, refetch])
+  }, [folders, cursor, push, pop, exit, registerActions, handleCommand, refetch])
 
   if (loading)
     return (
