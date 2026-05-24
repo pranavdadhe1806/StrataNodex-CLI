@@ -19,4 +19,8 @@ export interface ScreenProps {
   registerActions: (handlers: Partial<ActionHandlers>) => void
   height?: number
   width?: number
+  /** Report current screen nodes so the command input can resolve node refs. */
+  onNodesLoaded?: (nodes: import('../types/index.js').Node[]) => void
+  /** Report the currently-focused node id for autocomplete substitution. */
+  onSelectedNodeChanged?: (nodeId: string | undefined) => void
 }

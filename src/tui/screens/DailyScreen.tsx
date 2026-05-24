@@ -10,7 +10,13 @@ import type { ScreenProps } from '../types.js'
 
 const BINDINGS = '[↑↓] navigate  [b] back  [/done <n>] mark done'
 
-export function DailyScreen({ push, pop, registerActions }: ScreenProps) {
+export function DailyScreen({
+  push,
+  pop,
+  registerActions,
+  onNodesLoaded,
+  onSelectedNodeChanged,
+}: ScreenProps) {
   const [todayNodes, setTodayNodes] = useState<Node[]>([])
   const [overdueNodes, setOverdueNodes] = useState<Node[]>([])
   const [loading, setLoading] = useState(true)
@@ -19,6 +25,16 @@ export function DailyScreen({ push, pop, registerActions }: ScreenProps) {
   const [status, setStatus] = useState<string | null>(null)
 
   const allNodes = [...todayNodes, ...overdueNodes]
+
+  // Report nodes and cursor to App for autocomplete
+  useEffect(() => {
+    onNodesLoaded?.(allNodes)
+  }, [todayNodes, overdueNodes, onNodesLoaded])
+
+  useEffect(() => {
+    const node = allNodes[cursor]
+    onSelectedNodeChanged?.(node?.id)
+  }, [cursor, allNodes.length, onSelectedNodeChanged])
 
   const fetchData = useCallback(() => {
     setLoading(true)

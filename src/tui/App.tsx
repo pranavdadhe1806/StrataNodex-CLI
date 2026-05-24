@@ -18,6 +18,7 @@ import { HelpScreen } from './screens/HelpScreen.js'
 import { TagsScreen } from './screens/TagsScreen.js'
 import { WhoAmIScreen } from './screens/WhoAmIScreen.js'
 import { executeCommand } from '../commands/executor.js'
+import { findNode } from '../utils/tree.js'
 import type { ActionHandlers } from './types.js'
 import type { Screen } from '../commands/registry.js'
 import type { Node } from '../types/index.js'
@@ -59,10 +60,7 @@ export function App() {
   /** Title of the selected node, used to replace '...' in autocomplete suggestions. */
   const selectedNodeRef = useMemo(() => {
     if (!selectedNodeId || screenNodes.length === 0) return undefined
-    const flat = screenNodes.flatMap(function walk(n: Node): Node[] {
-      return [n, ...(n.children ?? []).flatMap(walk)]
-    })
-    return flat.find((n) => n.id === selectedNodeId)?.title
+    return findNode(screenNodes, selectedNodeId)?.title
   }, [selectedNodeId, screenNodes])
 
   const registerActions = useCallback((handlers: Partial<ActionHandlers>) => {
@@ -153,6 +151,8 @@ export function App() {
     registerActions,
     height: middleHeight,
     width: terminalWidth,
+    onNodesLoaded: setScreenNodes,
+    onSelectedNodeChanged: setSelectedNodeId,
   }
   const registryScreen: Screen = TUI_TO_REGISTRY[currentScreen.name] ?? 'global'
 
@@ -181,8 +181,6 @@ export function App() {
             listId={p['listId'] ?? ''}
             listName={p['listName']}
             folderName={p['folderName']}
-            onNodesLoaded={setScreenNodes}
-            onSelectedNodeChanged={setSelectedNodeId}
           />
         )
       case 'daily':

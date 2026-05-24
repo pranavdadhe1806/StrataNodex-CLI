@@ -16,10 +16,6 @@ interface Props extends ScreenProps {
   listId: string
   listName?: string
   folderName?: string
-  /** Called with the current flat node list so App can pass them to CommandInput. */
-  onNodesLoaded?: (nodes: ReturnType<typeof useTree>['nodes']) => void
-  /** Called when the cursor moves to a different node. */
-  onSelectedNodeChanged?: (nodeId: string | undefined) => void
 }
 
 // ── Tree metadata helpers ─────────────────────────────────────────────────────
