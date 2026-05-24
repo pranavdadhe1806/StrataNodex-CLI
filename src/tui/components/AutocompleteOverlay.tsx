@@ -19,18 +19,25 @@ export const AutocompleteOverlay: React.FC<Props> = ({
   width,
 }) => {
   if (!visible || suggestions.length === 0) return null
-  // Don't render if every suggestion is a placeholder hint (empty fillValue)
   const allPlaceholders = suggestions.every((s) => !s.fillValue || s.isNoMatch)
   if (allPlaceholders) return null
 
-  // Scroll window: keep selectedIndex visible
+  // Scroll window
   const start = Math.max(
     0,
     Math.min(selectedIndex - Math.floor(MAX_VISIBLE / 2), suggestions.length - MAX_VISIBLE)
   )
   const visible_items = suggestions.slice(start, start + MAX_VISIBLE)
 
-  const borderWidth = Math.min(width - 4, 60)
+  // ── Column sizing ──────────────────────────────────────────────────────────
+  // Wider overlay: up to 90 chars
+  const borderWidth = Math.min(width - 2, 90)
+  // Inner usable width: subtract border (2) + paddingX (2) + cursor+space (2)
+  const innerWidth = borderWidth - 6
+  // Fixed label column = widest label among visible items (minimum 20)
+  const maxLabelWidth = Math.max(20, ...visible_items.map((s) => s.label.length))
+  // Remaining space for the hint (subtract 2 for the "  " gap)
+  const hintMaxWidth = Math.max(12, innerWidth - maxLabelWidth - 2)
 
   return (
     <Box
@@ -58,6 +65,8 @@ export const AutocompleteOverlay: React.FC<Props> = ({
             key={`${s.label}-${absoluteIdx}`}
             suggestion={s}
             isSelected={absoluteIdx === selectedIndex}
+            labelWidth={maxLabelWidth}
+            hintMaxWidth={hintMaxWidth}
           />
         )
       })}

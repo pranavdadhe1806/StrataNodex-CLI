@@ -14,6 +14,9 @@ import { TreeScreen } from './screens/TreeScreen.js'
 import { DailyScreen } from './screens/DailyScreen.js'
 import { DashboardScreen } from './screens/DashboardScreen.js'
 import { NodeScreen } from './screens/NodeScreen.js'
+import { HelpScreen } from './screens/HelpScreen.js'
+import { TagsScreen } from './screens/TagsScreen.js'
+import { WhoAmIScreen } from './screens/WhoAmIScreen.js'
 import { executeCommand } from '../commands/executor.js'
 import { assignNumbers } from '../utils/numbering.js'
 import type { ActionHandlers } from './types.js'
@@ -33,6 +36,9 @@ const TUI_TO_REGISTRY: Record<string, Screen> = {
   dashboard: 'global',
   welcome: 'global',
   login: 'global',
+  help: 'global',
+  tags: 'global',
+  whoami: 'global',
 }
 
 export function App() {
@@ -168,6 +174,12 @@ export function App() {
         return <NodeScreen {...screenProps} nodeId={p['nodeId']!} />
       case 'dashboard':
         return <DashboardScreen {...screenProps} authUser={authUser} />
+      case 'help':
+        return <HelpScreen {...screenProps} />
+      case 'tags':
+        return <TagsScreen {...screenProps} />
+      case 'whoami':
+        return <WhoAmIScreen {...screenProps} />
       default:
         return <Text color="red">Unknown screen: {name}</Text>
     }

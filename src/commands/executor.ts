@@ -120,12 +120,8 @@ export async function executeCommand(
     return { ok: true, message: '' }
   }
   if (trimmed === '/whoami') {
-    try {
-      const [user, streakData] = await Promise.all([getMe(), getStreak()])
-      return { ok: true, message: `${user.name ?? user.email} · Streak: ${streakData.streak} days` }
-    } catch (e: unknown) {
-      return { ok: false, message: (e as Error).message }
-    }
+    ctx.navigate?.('whoami')
+    return { ok: true, message: '' }
   }
   if (trimmed === '/tags') {
     ctx.navigate?.('tags')
