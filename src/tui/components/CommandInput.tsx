@@ -13,6 +13,8 @@ import type { Node } from '../../types/index.js'
 interface Props {
   screen: Screen
   currentNodes?: Node[]
+  /** Hierarchical index of the cursor node (e.g. "1.3") — replaces '...' in suggestions. */
+  selectedNodeRef?: string
   width: number
   onSubmit: (value: string) => void
   /** Called when the executor returns a result message to display. */
@@ -24,6 +26,7 @@ interface Props {
 export const CommandInput: React.FC<Props> = ({
   screen,
   currentNodes = [],
+  selectedNodeRef,
   width,
   onSubmit,
   onOverlayChange,
@@ -46,7 +49,7 @@ export const CommandInput: React.FC<Props> = ({
     [onOverlayChange]
   )
 
-  const resolved = resolve(inputValue, screen, currentNodes)
+  const resolved = resolve(inputValue, screen, currentNodes, selectedNodeRef)
   const suggestions = resolved.suggestions
   // Don't show overlay if all suggestions are just placeholder hints (e.g. "folder name")
   const hasActionableSuggestions =
@@ -89,7 +92,7 @@ export const CommandInput: React.FC<Props> = ({
         setSelectedIndex(0)
 
         // Check if the next stage only has placeholder hints
-        const nextResolved = resolve(newValue, screen, currentNodes)
+        const nextResolved = resolve(newValue, screen, currentNodes, selectedNodeRef)
         const allPlaceholders =
           nextResolved.suggestions.length > 0 &&
           nextResolved.suggestions.every((s) => !s.fillValue || s.isNoMatch)

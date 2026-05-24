@@ -63,7 +63,12 @@ function matchingCommands(input: string, screen: Screen): CommandDefinition[] {
   return all.filter((c) => prefixMatch(input, c.command))
 }
 
-export function resolve(input: string, screen: Screen, currentNodes: Node[]): ResolveResult {
+export function resolve(
+  input: string,
+  screen: Screen,
+  currentNodes: Node[],
+  selectedNodeRef?: string
+): ResolveResult {
   // ── Stage 0: no slash, no overlay ─────────────────────────────────────────
   if (!input.startsWith('/')) {
     return { stage: 'command', suggestions: [], filledTokens: [] }
@@ -91,11 +96,15 @@ export function resolve(input: string, screen: Screen, currentNodes: Node[]): Re
     return {
       stage: 'command',
       filledTokens: [],
-      suggestions: matches.map((c) => ({
-        label: c.command,
-        fillValue: c.command + ' ',
-        hint: c.description,
-      })),
+      suggestions: matches.map((c) => {
+        // If a node is selected, substitute '...' with its hierarchical index.
+        // This makes suggestions read as e.g. "/edit node 1.3 title:" instead of "/edit node ... title:"
+        const label = selectedNodeRef ? c.command.replace('...', selectedNodeRef) : c.command
+        const fillValue = selectedNodeRef
+          ? c.command.replace('...', selectedNodeRef) + ' '
+          : c.command + ' '
+        return { label, fillValue, hint: c.description }
+      }),
     }
   }
 

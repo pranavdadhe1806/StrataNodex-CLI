@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef, useCallback } from 'react'
+import React, { useState, useEffect, useRef, useCallback, useMemo } from 'react'
 import { Box, Text, useApp, useStdout } from 'ink'
 import { useNavigation } from './hooks/useNavigation.js'
 import { useAuth } from './hooks/useAuth.js'
@@ -15,6 +15,7 @@ import { DailyScreen } from './screens/DailyScreen.js'
 import { DashboardScreen } from './screens/DashboardScreen.js'
 import { NodeScreen } from './screens/NodeScreen.js'
 import { executeCommand } from '../commands/executor.js'
+import { assignNumbers } from '../utils/numbering.js'
 import type { ActionHandlers } from './types.js'
 import type { Screen } from '../commands/registry.js'
 import type { Node } from '../types/index.js'
@@ -49,6 +50,13 @@ export function App() {
   const [screenNodes, setScreenNodes] = useState<Node[]>([])
   /** Currently selected node ID (cursor position in TreeScreen). */
   const [selectedNodeId, setSelectedNodeId] = useState<string | undefined>(undefined)
+
+  /** Hierarchical index string for the selected node (e.g. "1.3"), used in autocomplete. */
+  const selectedNodeRef = useMemo(() => {
+    if (!selectedNodeId || screenNodes.length === 0) return undefined
+    const numberMap = assignNumbers(screenNodes)
+    return numberMap.get(selectedNodeId)
+  }, [selectedNodeId, screenNodes])
 
   const registerActions = useCallback((handlers: Partial<ActionHandlers>) => {
     activeHandlers.current = handlers
@@ -189,6 +197,7 @@ export function App() {
         <CommandInput
           screen={registryScreen}
           currentNodes={screenNodes}
+          selectedNodeRef={selectedNodeRef}
           width={terminalWidth}
           onSubmit={handleCommandSubmit}
           onOverlayChange={(open) => {
