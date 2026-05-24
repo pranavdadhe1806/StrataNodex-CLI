@@ -18,7 +18,6 @@ import { HelpScreen } from './screens/HelpScreen.js'
 import { TagsScreen } from './screens/TagsScreen.js'
 import { WhoAmIScreen } from './screens/WhoAmIScreen.js'
 import { executeCommand } from '../commands/executor.js'
-import { assignNumbers } from '../utils/numbering.js'
 import type { ActionHandlers } from './types.js'
 import type { Screen } from '../commands/registry.js'
 import type { Node } from '../types/index.js'
@@ -57,11 +56,13 @@ export function App() {
   /** Currently selected node ID (cursor position in TreeScreen). */
   const [selectedNodeId, setSelectedNodeId] = useState<string | undefined>(undefined)
 
-  /** Hierarchical index string for the selected node (e.g. "1.3"), used in autocomplete. */
+  /** Title of the selected node, used to replace '...' in autocomplete suggestions. */
   const selectedNodeRef = useMemo(() => {
     if (!selectedNodeId || screenNodes.length === 0) return undefined
-    const numberMap = assignNumbers(screenNodes)
-    return numberMap.get(selectedNodeId)
+    const flat = screenNodes.flatMap(function walk(n: Node): Node[] {
+      return [n, ...(n.children ?? []).flatMap(walk)]
+    })
+    return flat.find((n) => n.id === selectedNodeId)?.title
   }, [selectedNodeId, screenNodes])
 
   const registerActions = useCallback((handlers: Partial<ActionHandlers>) => {
