@@ -1,6 +1,6 @@
 {
   "name": "stratanodex",
-  "version": "0.1.9",
+  "version": "0.1.10",
   "description": "Keyboard-driven terminal task manager — hierarchical folders, lists & nodes with a full TUI",
   "homepage": "https://stratanodex.online",
   "repository": {
