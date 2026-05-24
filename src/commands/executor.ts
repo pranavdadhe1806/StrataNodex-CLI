@@ -23,6 +23,7 @@ import {
 } from '../api/client.js'
 import { flattenTree, assignNumbers } from '../utils/numbering.js'
 import { clearToken } from '../utils/auth.js'
+import { clearRecents } from '../utils/recents.js'
 import type { Screen } from './registry.js'
 
 export interface ExecuteContext {
@@ -111,6 +112,7 @@ export async function executeCommand(
     return { ok: true, message: '' }
   }
   if (trimmed === '/logout') {
+    clearRecents() // must run before clearToken so userId can still be decoded
     clearToken()
     ctx.navigate?.('login')
     return { ok: true, message: 'Logged out.' }
