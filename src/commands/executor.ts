@@ -102,7 +102,7 @@ export async function executeCommand(
     ctx.navigate?.('__pop__')
     return { ok: true, message: '' }
   }
-  if (trimmed === '/home' || trimmed === '/folders') {
+  if (trimmed === '/folders') {
     ctx.navigate?.('home')
     return { ok: true, message: '' }
   }

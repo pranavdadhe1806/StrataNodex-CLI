@@ -28,12 +28,6 @@ export const COMMAND_REGISTRY: CommandDefinition[] = [
     description: 'Go back to previous screen',
   },
   {
-    command: '/home',
-    args: [],
-    screens: ['global'],
-    description: 'Jump to Folders screen',
-  },
-  {
     command: '/folders',
     args: [],
     screens: ['global'],
