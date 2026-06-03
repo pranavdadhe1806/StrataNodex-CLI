@@ -8,9 +8,14 @@ export type KeymapMode = 'nav' | 'edit'
 export function useKeymap(
   mode: KeymapMode,
   overlayOpen: React.MutableRefObject<boolean>,
-  handlers: ActionHandlers
+  handlers: ActionHandlers,
+  /** When false, the entire keymap is disabled (e.g. AI screen has its own input). */
+  isActive = true
 ): void {
   useInput((input, key) => {
+    // Fully disabled — another screen owns input
+    if (!isActive) return
+
     // When the autocomplete overlay is open, CommandInput handles all keys.
     // Let it consume them — don't fire any navigation actions here.
     if (overlayOpen.current) return

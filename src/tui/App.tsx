@@ -114,36 +114,43 @@ export function App() {
     [currentScreen, screenNodes, selectedNodeId, push, pop, safeBack, exit]
   )
 
-  useKeymap(mode, overlayOpen, {
-    onUp: () => activeHandlers.current.onUp?.(),
-    onDown: () => activeHandlers.current.onDown?.(),
-    onLeft: () => activeHandlers.current.onLeft?.(),
-    onRight: () => activeHandlers.current.onRight?.(),
-    onEnter: () => activeHandlers.current.onEnter?.(),
-    onBack: () => {
-      if (mode === 'edit') {
+  const isAiScreen = currentScreen.name === 'ai'
+
+  useKeymap(
+    mode,
+    overlayOpen,
+    {
+      onUp: () => activeHandlers.current.onUp?.(),
+      onDown: () => activeHandlers.current.onDown?.(),
+      onLeft: () => activeHandlers.current.onLeft?.(),
+      onRight: () => activeHandlers.current.onRight?.(),
+      onEnter: () => activeHandlers.current.onEnter?.(),
+      onBack: () => {
+        if (mode === 'edit') {
+          setMode('nav')
+          return
+        }
+        // Always go back; each screen's onBack calls safeBack (passed as pop).
+        // This ensures b/back always works even if a screen forgot to register onBack.
+        if (activeHandlers.current.onBack) {
+          activeHandlers.current.onBack()
+        } else {
+          safeBack()
+        }
+      },
+      onEsc: () => {
         setMode('nav')
-        return
-      }
-      // Always go back; each screen's onBack calls safeBack (passed as pop).
-      // This ensures b/back always works even if a screen forgot to register onBack.
-      if (activeHandlers.current.onBack) {
-        activeHandlers.current.onBack()
-      } else {
-        safeBack()
-      }
+      },
+      onQuit: () => {
+        if (mode === 'nav') {
+          const h = activeHandlers.current.onQuit
+          if (h) h()
+          else exit()
+        }
+      },
     },
-    onEsc: () => {
-      setMode('nav')
-    },
-    onQuit: () => {
-      if (mode === 'nav') {
-        const h = activeHandlers.current.onQuit
-        if (h) h()
-        else exit()
-      }
-    },
-  })
+    !isAiScreen
+  )
 
   const middleHeight = Math.max(3, terminalHeight - TOP_HEIGHT - BOTTOM_BASE_ROWS)
   const screenProps = {
@@ -230,19 +237,21 @@ export function App() {
         )}
       </Box>
 
-      {/* BOTTOM — autocomplete overlay + input (never pushed off-screen) */}
-      <Box flexShrink={0} flexDirection="column">
-        <CommandInput
-          screen={registryScreen}
-          currentNodes={screenNodes}
-          selectedNodeRef={selectedNodeRef}
-          width={terminalWidth}
-          onSubmit={handleCommandSubmit}
-          onOverlayChange={(open) => {
-            overlayOpen.current = open
-          }}
-        />
-      </Box>
+      {/* BOTTOM — autocomplete overlay + input (hidden on AI screen) */}
+      {!isAiScreen && (
+        <Box flexShrink={0} flexDirection="column">
+          <CommandInput
+            screen={registryScreen}
+            currentNodes={screenNodes}
+            selectedNodeRef={selectedNodeRef}
+            width={terminalWidth}
+            onSubmit={handleCommandSubmit}
+            onOverlayChange={(open) => {
+              overlayOpen.current = open
+            }}
+          />
+        </Box>
+      )}
     </Box>
   )
 }
