@@ -129,6 +129,15 @@ export async function executeCommand(
     ctx.navigate?.('tags')
     return { ok: true, message: '' }
   }
+  if (trimmed === '/ai' || trimmed.startsWith('/ai ')) {
+    const initialMessage = trimmed === '/ai' ? undefined : trimmed.slice('/ai '.length).trim()
+    const params: Record<string, string> = {}
+    if (initialMessage) params['initialMessage'] = initialMessage
+    if (ctx.folderId) params['folderId'] = ctx.folderId
+    if (ctx.listId) params['listId'] = ctx.listId
+    ctx.navigate?.('ai', params)
+    return { ok: true, message: '' }
+  }
 
   // ─── FOLDERS commands ───────────────────────────────────────────────────
   if (trimmed.startsWith('/new folder ')) {

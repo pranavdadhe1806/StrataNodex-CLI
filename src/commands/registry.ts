@@ -63,6 +63,19 @@ export const COMMAND_REGISTRY: CommandDefinition[] = [
     screens: ['global'],
     description: 'List all tags used across all lists',
   },
+  {
+    command: '/ai',
+    args: [
+      {
+        name: 'message',
+        type: 'text',
+        placeholder: 'natural language instruction',
+        optional: true,
+      },
+    ],
+    screens: ['global'],
+    description: 'Open AI chat or send a one-shot AI instruction',
+  },
 
   // ─── FOLDERS SCREEN ────────────────────────────────────────────────────────
   {
