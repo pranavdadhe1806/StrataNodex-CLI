@@ -17,6 +17,7 @@ import { NodeScreen } from './screens/NodeScreen.js'
 import { HelpScreen } from './screens/HelpScreen.js'
 import { TagsScreen } from './screens/TagsScreen.js'
 import { WhoAmIScreen } from './screens/WhoAmIScreen.js'
+import { AiScreen } from './screens/AiScreen.js'
 import { executeCommand } from '../commands/executor.js'
 import { findNode } from '../utils/tree.js'
 import type { ActionHandlers } from './types.js'
@@ -39,6 +40,7 @@ const TUI_TO_REGISTRY: Record<string, Screen> = {
   help: 'global',
   tags: 'global',
   whoami: 'global',
+  ai: 'global',
 }
 
 export function App() {
@@ -195,6 +197,15 @@ export function App() {
         return <TagsScreen {...screenProps} />
       case 'whoami':
         return <WhoAmIScreen {...screenProps} />
+      case 'ai':
+        return (
+          <AiScreen
+            {...screenProps}
+            initialMessage={p['initialMessage']}
+            folderId={p['folderId']}
+            listId={p['listId']}
+          />
+        )
       default:
         return <Text color="red">Unknown screen: {name}</Text>
     }
